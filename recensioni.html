@@ -157,7 +157,7 @@
     }
     @media (max-width: 768px) {
       .hamburger-btn { display: flex; }
-      .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; z-index: 100; }
+      .sidebar { position: fixed; top: 0; left: 0; height: 100vh; transform: translateX(-100%); transition: transform 0.3s ease; z-index: 100; }
       .sidebar.open { transform: translateX(0); }
       .main-content { margin-left: 0; padding: 16px; padding-top: 60px; }
       .tabbar { flex-wrap: wrap; padding: 10px; }

@@ -926,7 +926,16 @@
 
         @media (max-width: 768px) {
             .sidebar {
-                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 100;
+            }
+            .sidebar.open {
+                transform: translateX(0);
             }
             .main {
                 margin-left: 0;
@@ -936,6 +945,9 @@
             }
             .mix-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            .hamburger-btn {
+                display: flex !important;
             }
         }
 
@@ -995,13 +1007,6 @@
 
         /* ===== RESPONSIVE - MOBILE ===== */
         @media (max-width: 768px) {
-            .hamburger-btn { display: flex; }
-            .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-                z-index: 100;
-            }
-            .sidebar.open { transform: translateX(0); }
             .main { margin-left: 0; }
             .header { padding: 12px 16px; }
             .content { padding: 16px; }
