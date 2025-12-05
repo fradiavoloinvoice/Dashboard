@@ -145,7 +145,7 @@
 
         // Controlla se gia loggato
         if (sessionStorage.getItem('fradiavolo_logged') === 'true') {
-            window.location.href = 'index.html';
+            window.location.href = 'dash.html';
         }
 
         function handleLogin(e) {
@@ -160,8 +160,8 @@
                 sessionStorage.setItem('fradiavolo_logged', 'true');
                 sessionStorage.setItem('fradiavolo_user', username);
 
-                // Redirect alla home
-                window.location.href = 'index.html';
+                // Redirect alla dashboard
+                window.location.href = 'dash.html';
             } else {
                 // Mostra errore
                 errorEl.classList.add('show');
