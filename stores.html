@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fradiavolo - Stores</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #F8F9FA;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 260px;
+            background: #FFFFFF;
+            border-right: 1px solid #E5E7EB;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .logo {
+            padding: 24px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1F2937;
+        }
+
+        .nav-section {
+            padding: 20px 12px;
+            flex: 1;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #9CA3AF;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0 12px;
+            margin-bottom: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: #6B7280;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: #FFF7ED;
+            color: #EA580C;
+        }
+
+        .nav-item.active {
+            background: #FFF7ED;
+            color: #EA580C;
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 24px;
+            background: #EA580C;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: #E5E7EB;
+            margin: 16px 12px;
+        }
+
+        .tools-section {
+            padding: 0 12px 20px;
+        }
+
+        .tool-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            color: #6B7280;
+            text-decoration: none;
+        }
+
+        .tool-item:hover {
+            background: #F3F4F6;
+        }
+
+        .tool-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .tool-icon.glovo { background: #FFC244; }
+        .tool-icon.deliveroo { background: #00CCBC; }
+        .tool-icon.fatturato { background: #667EEA; }
+
+        .upgrade-card {
+            margin: 12px;
+            padding: 20px;
+            background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+            border-radius: 12px;
+            border: 1px solid #FED7AA;
+        }
+
+        .upgrade-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 6px;
+        }
+
+        .upgrade-text {
+            font-size: 12px;
+            color: #6B7280;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .upgrade-btn {
+            width: 100%;
+            padding: 10px;
+            background: #EA580C;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main {
+            flex: 1;
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #E5E7EB;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #6B7280;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 32px;
+        }
+
+        /* Store Selector */
+        .store-selector-section {
+            margin-bottom: 32px;
+        }
+
+        .store-selector-row {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .store-select {
+            padding: 12px 16px;
+            border: 1px solid #E5E7EB;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #374151;
+            background: white;
+            min-width: 280px;
+            cursor: pointer;
+        }
+
+        .store-select:focus {
+            outline: none;
+            border-color: #EA580C;
+        }
+
+        /* Store Header */
+        .store-header {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .store-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .store-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .store-details h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 4px;
+        }
+
+        .store-details p {
+            font-size: 14px;
+            color: #6B7280;
+        }
+
+        .store-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #DCFCE7;
+            border-radius: 20px;
+            color: #16A34A;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #16A34A;
+            border-radius: 50%;
+        }
+
+        /* KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .kpi-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .kpi-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .kpi-icon.orange { background: #FFF7ED; }
+        .kpi-icon.blue { background: #EFF6FF; }
+        .kpi-icon.green { background: #F0FDF4; }
+        .kpi-icon.purple { background: #FAF5FF; }
+
+        .kpi-label {
+            font-size: 13px;
+            color: #6B7280;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 8px;
+        }
+
+        .kpi-change {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+
+        .kpi-change.positive { color: #16A34A; }
+        .kpi-change.negative { color: #DC2626; }
+
+        .kpi-period {
+            color: #9CA3AF;
+            font-size: 12px;
+        }
+
+        /* Charts Row */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .chart-container {
+            height: 300px;
+        }
+
+        /* Mix Canali */
+        .mix-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+
+        .mix-item {
+            text-align: center;
+            padding: 16px;
+            background: #F9FAFB;
+            border-radius: 12px;
+        }
+
+        .mix-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 4px;
+        }
+
+        .mix-label {
+            font-size: 12px;
+            color: #6B7280;
+        }
+
+        .mix-item.store .mix-value { color: #EA580C; }
+        .mix-item.asporto .mix-value { color: #F97316; }
+        .mix-item.deliveroo .mix-value { color: #00CCBC; }
+        .mix-item.glovo .mix-value { color: #FFC244; }
+        .mix-item.justeat .mix-value { color: #F43F5E; }
+
+        /* Trend Analysis */
+        .trend-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .trend-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .trend-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .trend-toggle {
+            display: flex;
+            background: #F3F4F6;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 500;
+            color: #6B7280;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .toggle-btn.active {
+            background: #1F2937;
+            color: white;
+        }
+
+        .trend-chart {
+            height: 350px;
+        }
+
+        /* Date Picker */
+        .date-picker-wrapper {
+            position: relative;
+        }
+
+        .date-picker-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .date-picker-btn:hover {
+            border-color: #EA580C;
+            background: #FFF7ED;
+        }
+
+        .date-picker-icon {
+            font-size: 16px;
+        }
+
+        .date-picker-text {
+            font-weight: 500;
+        }
+
+        .date-picker-arrow {
+            font-size: 10px;
+            color: #9CA3AF;
+            transition: transform 0.2s;
+        }
+
+        .date-picker-btn.open .date-picker-arrow {
+            transform: rotate(180deg);
+        }
+
+        .date-picker-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            padding: 16px;
+            min-width: 320px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .date-picker-dropdown.open {
+            display: block;
+        }
+
+        .date-picker-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .date-picker-granularity {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .granularity-btn {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #E5E7EB;
+            background: white;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #6B7280;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .granularity-btn:hover {
+            border-color: #EA580C;
+            color: #EA580C;
+        }
+
+        .granularity-btn.active {
+            background: #EA580C;
+            border-color: #EA580C;
+            color: white;
+        }
+
+        .date-picker-range {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .date-picker-field {
+            flex: 1;
+        }
+
+        .date-picker-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #6B7280;
+            margin-bottom: 6px;
+        }
+
+        .date-picker-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #374151;
+            background: white;
+            cursor: pointer;
+        }
+
+        .date-picker-input:focus {
+            outline: none;
+            border-color: #EA580C;
+        }
+
+        .date-picker-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .date-picker-apply {
+            padding: 10px 24px;
+            background: #EA580C;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .date-picker-apply:hover {
+            background: #C2410C;
+        }
+
+        /* Delivery Platforms Section */
+        .platforms-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .platform-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .platform-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .platform-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .platform-logo.glovo { background: #FFC244; }
+        .platform-logo.deliveroo { background: #00CCBC; }
+
+        .platform-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .platform-kpis {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .platform-kpi {
+            padding: 12px;
+            background: #F9FAFB;
+            border-radius: 10px;
+        }
+
+        .platform-kpi-label {
+            font-size: 11px;
+            color: #6B7280;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .platform-kpi-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1F2937;
+        }
+
+        .platform-kpi-change {
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .platform-kpi-change.positive { color: #16A34A; }
+        .platform-kpi-change.negative { color: #DC2626; }
+
+        /* Reviews Section */
+        .reviews-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+            margin-bottom: 32px;
+        }
+
+        .reviews-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .reviews-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .review-card {
+            background: #F9FAFB;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .review-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .review-card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .review-card-icon.platforms { background: #FEF3C7; }
+        .review-card-icon.nps { background: #DBEAFE; }
+        .review-card-icon.google { background: #FEE2E2; }
+
+        .review-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .review-card-subtitle {
+            font-size: 11px;
+            color: #6B7280;
+        }
+
+        .review-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .review-stat {
+            flex: 1;
+        }
+
+        .review-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1F2937;
+        }
+
+        .review-stat-label {
+            font-size: 11px;
+            color: #6B7280;
+            text-transform: uppercase;
+        }
+
+        .review-platforms {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .review-platform-tag {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: white;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #374151;
+            border: 1px solid #E5E7EB;
+        }
+
+        .nps-bar {
+            display: flex;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .nps-bar-promoters { background: #22C55E; }
+        .nps-bar-passives { background: #FBBF24; }
+        .nps-bar-detractors { background: #EF4444; }
+
+        .nps-legend {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 10px;
+            color: #6B7280;
+        }
+
+        @media (max-width: 1200px) {
+            .reviews-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            color: #6B7280;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #E5E7EB;
+            border-top-color: #EA580C;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+            .mix-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .main {
+                margin-left: 0;
+            }
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            .mix-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* ===== HAMBURGER MENU ===== */
+        .hamburger-btn {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .hamburger-btn:hover {
+            background: #F3F4F6;
+        }
+
+        .hamburger-btn span {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: #374151;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+
+        .sidebar-overlay.open {
+            display: block;
+        }
+
+        /* ===== RESPONSIVE - TABLET ===== */
+        @media (max-width: 1024px) {
+            .sidebar { width: 220px; }
+            .main { margin-left: 220px; }
+            .content { padding: 24px; }
+            .header { padding: 16px 24px; }
+            .kpi-grid, .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .charts-section { grid-template-columns: 1fr; }
+        }
+
+        /* ===== RESPONSIVE - MOBILE ===== */
+        @media (max-width: 768px) {
+            .hamburger-btn { display: flex; }
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 100;
+            }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .header { padding: 12px 16px; }
+            .content { padding: 16px; }
+            .kpi-grid, .stats-grid { grid-template-columns: 1fr; gap: 12px; }
+            .charts-section { grid-template-columns: 1fr; }
+            .chart-card { padding: 16px; }
+            .store-selector-row { flex-direction: column; gap: 12px; }
+            .store-select { width: 100%; }
+            .date-picker-wrapper { width: 100%; }
+            .date-picker-btn { width: 100%; justify-content: center; }
+            table { min-width: 500px; }
+            .table-card { overflow-x: auto; }
+        }
+
+        /* ===== RESPONSIVE - SMALL MOBILE ===== */
+        @media (max-width: 480px) {
+            .logo-text { font-size: 16px; }
+            .nav-item { padding: 10px 12px; font-size: 13px; }
+            .kpi-value { font-size: 20px; }
+            .avatar { width: 32px; height: 32px; font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">🍕</div>
+            <span class="logo-text">Fradiavolo</span>
+        </div>
+
+        <nav class="nav-section">
+            <div class="nav-label">Menu</div>
+            <a href="dash.html" class="nav-item">
+                <span class="nav-icon">📊</span>
+                Dashboard
+            </a>
+            <a href="stores.html" class="nav-item active">
+                <span class="nav-icon">🏪</span>
+                Stores
+            </a>
+            <a href="recensioni.html" class="nav-item">
+                <span class="nav-icon">⭐</span>
+                Recensioni
+            </a>
+            <a href="glovo.html" class="nav-item">
+                <span class="nav-icon">🟡</span>
+                Glovo
+            </a>
+            <a href="deliveroo.html" class="nav-item">
+                <span class="nav-icon">🔵</span>
+                Deliveroo
+            </a>
+            <a href="justeat.html" class="nav-item">
+                <span class="nav-icon">🟠</span>
+                Just Eat
+            </a>
+            <a href="combined.html" class="nav-item">
+                <span class="nav-icon">📦</span>
+                Delivery Multipiattaforma
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <header class="header">
+            <div class="header-left">
+                <button class="hamburger-btn" onclick="toggleSidebar()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <span class="page-title">Analisi Store</span>
+            </div>
+            <div class="header-right">
+                <div class="avatar">AP</div>
+            </div>
+        </header>
+
+        <div class="content">
+            <!-- Store Selector -->
+            <div class="store-selector-section">
+                <div class="store-selector-row">
+                    <select class="store-select" id="storeSelector" onchange="loadStoreData()">
+                        <option value="">Seleziona uno store...</option>
+                    </select>
+                    <div class="date-picker-wrapper">
+                        <button class="date-picker-btn" id="datePickerBtn" onclick="toggleDatePicker()">
+                            <span class="date-picker-icon">📅</span>
+                            <span class="date-picker-text" id="datePickerText">01 Gen 2025 - Oggi</span>
+                            <span class="date-picker-arrow">▼</span>
+                        </button>
+                        <div class="date-picker-dropdown" id="datePickerDropdown">
+                            <div class="date-picker-header">
+                                <span>Seleziona periodo</span>
+                            </div>
+                            <div class="date-picker-granularity">
+                                <button class="granularity-btn active" data-granularity="daily" onclick="setGranularity('daily')">Giorni</button>
+                                <button class="granularity-btn" data-granularity="weekly" onclick="setGranularity('weekly')">Settimane</button>
+                                <button class="granularity-btn" data-granularity="monthly" onclick="setGranularity('monthly')">Mesi</button>
+                            </div>
+                            <div class="date-picker-range">
+                                <div class="date-picker-field">
+                                    <label>Da</label>
+                                    <input type="date" id="dateFrom" class="date-picker-input">
+                                    <select id="weekFrom" class="date-picker-input" style="display: none;"></select>
+                                    <select id="monthFrom" class="date-picker-input" style="display: none;"></select>
+                                </div>
+                                <div class="date-picker-field">
+                                    <label>A</label>
+                                    <input type="date" id="dateTo" class="date-picker-input">
+                                    <select id="weekTo" class="date-picker-input" style="display: none;"></select>
+                                    <select id="monthTo" class="date-picker-input" style="display: none;"></select>
+                                </div>
+                            </div>
+                            <div class="date-picker-actions">
+                                <button class="date-picker-apply" onclick="applyDateFilter()">Applica</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Store Header (hidden until store selected) -->
+            <div class="store-header" id="storeHeader" style="display: none;">
+                <div class="store-info">
+                    <div class="store-avatar" id="storeAvatar">FD</div>
+                    <div class="store-details">
+                        <h2 id="storeName">Nome Store</h2>
+                        <p id="storeCity">Citta</p>
+                    </div>
+                </div>
+                <div class="store-status">
+                    <span class="status-dot"></span>
+                    Attivo
+                </div>
+            </div>
+
+            <!-- KPIs (hidden until store selected) -->
+            <div class="kpi-grid" id="kpiGrid" style="display: none;">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Seleziona uno store...
+                </div>
+            </div>
+
+            <!-- Mix Canali -->
+            <div class="chart-card" id="mixSection" style="display: none; margin-bottom: 24px;">
+                <div class="chart-header">
+                    <h3 class="chart-title">Mix Canali</h3>
+                </div>
+                <div class="mix-grid" id="mixGrid">
+                    <!-- Mix items will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Delivery Platforms -->
+            <div class="platforms-section" id="platformsSection" style="display: none;">
+                <!-- Glovo -->
+                <div class="platform-card">
+                    <div class="platform-header">
+                        <div class="platform-logo glovo">🚀</div>
+                        <h3 class="platform-title">Glovo</h3>
+                    </div>
+                    <div class="platform-kpis" id="glovoKpis">
+                        <div class="platform-kpi">
+                            <div class="platform-kpi-label">GMV</div>
+                            <div class="platform-kpi-value" id="glovoGmv">-</div>
+                        </div>
+                        <div class="platform-kpi">
+                            <div class="platform-kpi-label">Ordini</div>
+                            <div class="platform-kpi-value" id="glovoOrders">-</div>
+                        </div>
+                        <div class="platform-kpi">
+                            <div class="platform-kpi-label">AOV</div>
+                            <div class="platform-kpi-value" id="glovoAov">-</div>
+                        </div>
+                        <div class="platform-kpi">
+                            <div class="platform-kpi-label">Rating</div>
+                            <div class="platform-kpi-value" id="glovoRating">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deliveroo -->
+                <div class="platform-card">
+                    <div class="platform-header">
+                        <div class="platform-logo deliveroo">🏍️</div>
+                        <h3 class="platform-title">Deliveroo</h3>
+                    </div>
+                    <div class="platform-kpis" id="deliverooKpis">
+                        <div class="platform-kpi">
+                            <div class="platform-kpi-label">GMV</div>
+                            <div class="platform-kpi-value" id="deliverooGmv">-</div>
+                        </div>
+                        <div class="platform-kpi">
+                            <div class="platform-kpi-label">Ordini</div>
+                            <div class="platform-kpi-value" id="deliverooOrders">-</div>
+                        </div>
+                        <div class="platform-kpi">
+                            <div class="platform-kpi-label">AOV</div>
+                            <div class="platform-kpi-value" id="deliverooAov">-</div>
+                        </div>
+                        <div class="platform-kpi">
+                            <div class="platform-kpi-label">Rating</div>
+                            <div class="platform-kpi-value" id="deliverooRating">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reviews Section -->
+            <div class="reviews-section" id="reviewsSection" style="display: none;">
+                <div class="reviews-header">
+                    <h3 class="reviews-title">Recensioni</h3>
+                </div>
+                <div class="reviews-grid">
+                    <!-- Piattaforme -->
+                    <div class="review-card">
+                        <div class="review-card-header">
+                            <div class="review-card-icon platforms">&#11088;</div>
+                            <div>
+                                <div class="review-card-title">Recensioni Piattaforme</div>
+                                <div class="review-card-subtitle">Glovo, Deliveroo, Google, etc.</div>
+                            </div>
+                        </div>
+                        <div class="review-stats">
+                            <div class="review-stat">
+                                <div class="review-stat-value" id="reviewsTotal">-</div>
+                                <div class="review-stat-label">Totale</div>
+                            </div>
+                            <div class="review-stat">
+                                <div class="review-stat-value" id="reviewsAvg">-</div>
+                                <div class="review-stat-label">Media Voto</div>
+                            </div>
+                        </div>
+                        <div class="review-platforms" id="reviewsPlatforms">
+                            <!-- Platform tags -->
+                        </div>
+                    </div>
+
+                    <!-- NPS Sondaggio -->
+                    <div class="review-card">
+                        <div class="review-card-header">
+                            <div class="review-card-icon nps">&#128200;</div>
+                            <div>
+                                <div class="review-card-title">NPS Sondaggio</div>
+                                <div class="review-card-subtitle">Net Promoter Score</div>
+                            </div>
+                        </div>
+                        <div class="review-stats">
+                            <div class="review-stat">
+                                <div class="review-stat-value" id="npsScore">-</div>
+                                <div class="review-stat-label">NPS Score</div>
+                            </div>
+                            <div class="review-stat">
+                                <div class="review-stat-value" id="npsResponses">-</div>
+                                <div class="review-stat-label">Risposte</div>
+                            </div>
+                        </div>
+                        <div class="nps-bar" id="npsBar">
+                            <div class="nps-bar-promoters" style="width: 0%"></div>
+                            <div class="nps-bar-passives" style="width: 0%"></div>
+                            <div class="nps-bar-detractors" style="width: 0%"></div>
+                        </div>
+                        <div class="nps-legend">
+                            <span id="npsPromoters">Promotori: -</span>
+                            <span id="npsPassives">Passivi: -</span>
+                            <span id="npsDetractors">Detrattori: -</span>
+                        </div>
+                    </div>
+
+                    <!-- Gara Google -->
+                    <div class="review-card">
+                        <div class="review-card-header">
+                            <div class="review-card-icon google">&#127942;</div>
+                            <div>
+                                <div class="review-card-title">Gara Google</div>
+                                <div class="review-card-subtitle">Dalla settimana 44</div>
+                            </div>
+                        </div>
+                        <div class="review-stats">
+                            <div class="review-stat">
+                                <div class="review-stat-value" id="googleCount">-</div>
+                                <div class="review-stat-label">Recensioni</div>
+                            </div>
+                            <div class="review-stat">
+                                <div class="review-stat-value" id="googleAvg">-</div>
+                                <div class="review-stat-label">Media Voto</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trend Chart -->
+            <div class="trend-section" id="trendSection" style="display: none;">
+                <div class="trend-header">
+                    <h3 class="trend-title">Andamento Fatturato</h3>
+                    <div class="trend-toggle">
+                        <button class="toggle-btn active" data-period="weekly" onclick="setTrendPeriod('weekly')">Settimana</button>
+                        <button class="toggle-btn" data-period="monthly" onclick="setTrendPeriod('monthly')">Mese</button>
+                    </div>
+                </div>
+                <div class="trend-chart">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Mobile sidebar toggle
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('open');
+        }
+
+        const API_URL = '/api/fatturato';
+        const GLOVO_API_URL = '/api/glovo';
+        const DELIVEROO_API_URL = '/api/deliveroo';
+        const RECENSIONI_API_URL = '/api/recensioni/store';
+
+        let currentStoreData = null;
+        let glovoData = null;
+        let deliverooData = null;
+        let recensioniData = null;
+        let trendChartInstance = null;
+        let trendPeriod = 'weekly';
+        let allStores = [];
+        let availableWeeks = [];
+
+        // Date filter state
+        let filterState = {
+            granularity: 'daily',
+            dateFrom: '2025-01-01',
+            dateTo: new Date().toISOString().split('T')[0],
+            weekFrom: 1,
+            weekTo: 52,
+            monthFrom: '2025-01',
+            monthTo: new Date().toISOString().slice(0, 7)
+        };
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            initDatePicker();
+            loadStoresList();
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                const wrapper = document.querySelector('.date-picker-wrapper');
+                if (!wrapper.contains(e.target)) {
+                    closeDatePicker();
+                }
+            });
+        });
+
+        function initDatePicker() {
+            document.getElementById('dateFrom').value = filterState.dateFrom;
+            document.getElementById('dateTo').value = filterState.dateTo;
+            updateDatePickerText();
+        }
+
+        function toggleDatePicker() {
+            const btn = document.getElementById('datePickerBtn');
+            const dropdown = document.getElementById('datePickerDropdown');
+            btn.classList.toggle('open');
+            dropdown.classList.toggle('open');
+
+            if (dropdown.classList.contains('open')) {
+                updateInputVisibility();
+            }
+        }
+
+        function closeDatePicker() {
+            document.getElementById('datePickerBtn').classList.remove('open');
+            document.getElementById('datePickerDropdown').classList.remove('open');
+        }
+
+        function setGranularity(granularity) {
+            filterState.granularity = granularity;
+            trendPeriod = granularity === 'daily' ? 'weekly' : granularity;
+
+            document.querySelectorAll('.granularity-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.granularity === granularity) {
+                    btn.classList.add('active');
+                }
+            });
+
+            updateInputVisibility();
+        }
+
+        function updateInputVisibility() {
+            const dateFrom = document.getElementById('dateFrom');
+            const dateTo = document.getElementById('dateTo');
+            const weekFrom = document.getElementById('weekFrom');
+            const weekTo = document.getElementById('weekTo');
+            const monthFrom = document.getElementById('monthFrom');
+            const monthTo = document.getElementById('monthTo');
+
+            dateFrom.style.display = 'none';
+            dateTo.style.display = 'none';
+            weekFrom.style.display = 'none';
+            weekTo.style.display = 'none';
+            monthFrom.style.display = 'none';
+            monthTo.style.display = 'none';
+
+            if (filterState.granularity === 'daily') {
+                dateFrom.style.display = 'block';
+                dateTo.style.display = 'block';
+            } else if (filterState.granularity === 'weekly') {
+                weekFrom.style.display = 'block';
+                weekTo.style.display = 'block';
+                populateWeekSelectors();
+            } else if (filterState.granularity === 'monthly') {
+                monthFrom.style.display = 'block';
+                monthTo.style.display = 'block';
+                populateMonthSelectors();
+            }
+        }
+
+        function populateWeekSelectors() {
+            const weekFrom = document.getElementById('weekFrom');
+            const weekTo = document.getElementById('weekTo');
+            const weeks = availableWeeks.length > 0 ? availableWeeks : Array.from({length: 52}, (_, i) => i + 1);
+
+            weekFrom.innerHTML = weeks.map(w =>
+                `<option value="${w}" ${w === filterState.weekFrom ? 'selected' : ''}>Settimana ${w}</option>`
+            ).join('');
+
+            weekTo.innerHTML = weeks.map(w =>
+                `<option value="${w}" ${w === filterState.weekTo ? 'selected' : ''}>Settimana ${w}</option>`
+            ).join('');
+        }
+
+        function populateMonthSelectors() {
+            const monthFrom = document.getElementById('monthFrom');
+            const monthTo = document.getElementById('monthTo');
+            const monthNames = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+                               'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+
+            const months = [];
+            const startYear = 2025;
+            const now = new Date();
+            const endYear = now.getFullYear();
+            const endMonth = now.getMonth();
+
+            for (let year = startYear; year <= endYear; year++) {
+                const maxMonth = year === endYear ? endMonth : 11;
+                for (let month = 0; month <= maxMonth; month++) {
+                    const value = `${year}-${String(month + 1).padStart(2, '0')}`;
+                    months.push({ value, label: `${monthNames[month]} ${year}` });
+                }
+            }
+
+            monthFrom.innerHTML = months.map(m =>
+                `<option value="${m.value}" ${m.value === filterState.monthFrom ? 'selected' : ''}>${m.label}</option>`
+            ).join('');
+
+            monthTo.innerHTML = months.map(m =>
+                `<option value="${m.value}" ${m.value === filterState.monthTo ? 'selected' : ''}>${m.label}</option>`
+            ).join('');
+        }
+
+        function applyDateFilter() {
+            if (filterState.granularity === 'daily') {
+                filterState.dateFrom = document.getElementById('dateFrom').value;
+                filterState.dateTo = document.getElementById('dateTo').value;
+            } else if (filterState.granularity === 'weekly') {
+                filterState.weekFrom = parseInt(document.getElementById('weekFrom').value);
+                filterState.weekTo = parseInt(document.getElementById('weekTo').value);
+            } else if (filterState.granularity === 'monthly') {
+                filterState.monthFrom = document.getElementById('monthFrom').value;
+                filterState.monthTo = document.getElementById('monthTo').value;
+            }
+
+            updateDatePickerText();
+            closeDatePicker();
+
+            if (document.getElementById('storeSelector').value) {
+                loadStoreData();
+            }
+        }
+
+        function updateDatePickerText() {
+            const text = document.getElementById('datePickerText');
+            const monthNames = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+
+            if (filterState.granularity === 'daily') {
+                const from = new Date(filterState.dateFrom);
+                const to = new Date(filterState.dateTo);
+                text.textContent = `${from.getDate()} ${monthNames[from.getMonth()]} ${from.getFullYear()} - ${to.getDate()} ${monthNames[to.getMonth()]} ${to.getFullYear()}`;
+            } else if (filterState.granularity === 'weekly') {
+                text.textContent = `Sett. ${filterState.weekFrom} - Sett. ${filterState.weekTo}`;
+            } else if (filterState.granularity === 'monthly') {
+                const [yFrom, mFrom] = filterState.monthFrom.split('-');
+                const [yTo, mTo] = filterState.monthTo.split('-');
+                text.textContent = `${monthNames[parseInt(mFrom) - 1]} ${yFrom} - ${monthNames[parseInt(mTo) - 1]} ${yTo}`;
+            }
+        }
+
+        async function loadStoresList() {
+            try {
+                const response = await fetch(`${API_URL}?dateFilter=all`);
+                const data = await response.json();
+
+                if (data.filters && data.filters.stores) {
+                    allStores = data.filters.stores;
+                    const selector = document.getElementById('storeSelector');
+
+                    allStores.forEach(store => {
+                        const option = document.createElement('option');
+                        option.value = store;
+                        option.textContent = store;
+                        selector.appendChild(option);
+                    });
+                }
+
+                if (data.filters && data.filters.weeks) {
+                    availableWeeks = data.filters.weeks;
+                }
+            } catch (error) {
+                console.error('Error loading stores list:', error);
+            }
+        }
+
+        async function loadStoreData() {
+            const storeName = document.getElementById('storeSelector').value;
+
+            if (!storeName) {
+                document.getElementById('storeHeader').style.display = 'none';
+                document.getElementById('kpiGrid').style.display = 'none';
+                document.getElementById('mixSection').style.display = 'none';
+                document.getElementById('platformsSection').style.display = 'none';
+                document.getElementById('reviewsSection').style.display = 'none';
+                document.getElementById('trendSection').style.display = 'none';
+                return;
+            }
+
+            try {
+                // Build fatturato params
+                const params = new URLSearchParams({
+                    dateFilter: 'custom',
+                    store: storeName,
+                    period: trendPeriod
+                });
+
+                if (filterState.granularity === 'daily') {
+                    params.set('dateFrom', filterState.dateFrom);
+                    params.set('dateTo', filterState.dateTo);
+                } else if (filterState.granularity === 'weekly') {
+                    params.set('weekFrom', filterState.weekFrom);
+                    params.set('weekTo', filterState.weekTo);
+                } else if (filterState.granularity === 'monthly') {
+                    params.set('dateFrom', filterState.monthFrom + '-01');
+                    const [year, month] = filterState.monthTo.split('-');
+                    const lastDay = new Date(year, month, 0).getDate();
+                    params.set('dateTo', `${filterState.monthTo}-${lastDay}`);
+                }
+
+                // Load all data - we'll filter Glovo/Deliveroo client-side for range support
+                // Build recensioni params
+                const recensioniParams = new URLSearchParams();
+                if (filterState.granularity === 'weekly') {
+                    recensioniParams.set('weekFrom', filterState.weekFrom);
+                    recensioniParams.set('weekTo', filterState.weekTo);
+                }
+
+                const [fatturatoResponse, glovoResponse, deliverooResponse, recensioniResponse] = await Promise.all([
+                    fetch(`${API_URL}?${params}`),
+                    fetch(`${GLOVO_API_URL}?week=all`),
+                    fetch(`${DELIVEROO_API_URL}?week=all`),
+                    fetch(`${RECENSIONI_API_URL}/${encodeURIComponent(storeName)}?${recensioniParams}`)
+                ]);
+
+                currentStoreData = await fatturatoResponse.json();
+                glovoData = await glovoResponse.json();
+                deliverooData = await deliverooResponse.json();
+                recensioniData = await recensioniResponse.json();
+
+                // Show sections
+                document.getElementById('storeHeader').style.display = 'flex';
+                document.getElementById('kpiGrid').style.display = 'grid';
+                document.getElementById('mixSection').style.display = 'block';
+                document.getElementById('platformsSection').style.display = 'grid';
+                document.getElementById('reviewsSection').style.display = 'block';
+                document.getElementById('trendSection').style.display = 'block';
+
+                // Update header
+                const initials = storeName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+                document.getElementById('storeAvatar').textContent = initials;
+                document.getElementById('storeName').textContent = storeName;
+
+                if (currentStoreData.storesRanking && currentStoreData.storesRanking[0]) {
+                    document.getElementById('storeCity').textContent = currentStoreData.storesRanking[0].city;
+                }
+
+                renderKPIs();
+                renderMixCanali();
+                renderPlatformData(storeName);
+                renderReviewsData();
+                renderTrendChart();
+            } catch (error) {
+                console.error('Error loading store data:', error);
+            }
+        }
+
+        function renderReviewsData() {
+            if (!recensioniData || !recensioniData.success) {
+                document.getElementById('reviewsSection').style.display = 'none';
+                return;
+            }
+
+            // Piattaforme
+            const piattaforme = recensioniData.piattaforme;
+            document.getElementById('reviewsTotal').textContent = piattaforme.total || '-';
+            document.getElementById('reviewsAvg').textContent = piattaforme.avgRating > 0 ? piattaforme.avgRating.toFixed(1) : '-';
+
+            // Platform tags
+            const platformsContainer = document.getElementById('reviewsPlatforms');
+            const platformEmojis = {
+                'glovo': '🚀',
+                'deliveroo': '🏍️',
+                'google': '🔍',
+                'tripadvisor': '🦉',
+                'thefork': '🍴',
+                'justeat': '🍔'
+            };
+
+            let platformTags = '';
+            for (const [platform, data] of Object.entries(piattaforme.byPlatform || {})) {
+                const emoji = platformEmojis[platform] || '⭐';
+                platformTags += `<span class="review-platform-tag">${emoji} ${platform}: ${data.count} (${data.avgRating})</span>`;
+            }
+            platformsContainer.innerHTML = platformTags || '<span class="review-platform-tag">Nessun dato</span>';
+
+            // NPS Sondaggio
+            const sondaggio = recensioniData.sondaggio;
+            document.getElementById('npsScore').textContent = sondaggio.npsScore !== null ? sondaggio.npsScore : '-';
+            document.getElementById('npsResponses').textContent = sondaggio.total || '-';
+
+            // NPS Bar
+            const total = sondaggio.total || 1;
+            const promotersPct = (sondaggio.promoters / total * 100) || 0;
+            const neutralsPct = (sondaggio.neutrals / total * 100) || 0;
+            const detractorsPct = (sondaggio.detractors / total * 100) || 0;
+
+            const npsBar = document.getElementById('npsBar');
+            npsBar.innerHTML = `
+                <div class="nps-bar-promoters" style="width: ${promotersPct}%"></div>
+                <div class="nps-bar-passives" style="width: ${neutralsPct}%"></div>
+                <div class="nps-bar-detractors" style="width: ${detractorsPct}%"></div>
+            `;
+
+            document.getElementById('npsPromoters').textContent = `Promotori: ${sondaggio.promoters || 0}`;
+            document.getElementById('npsPassives').textContent = `Neutri: ${sondaggio.neutrals || 0}`;
+            document.getElementById('npsDetractors').textContent = `Detrattori: ${sondaggio.detractors || 0}`;
+
+            // Gara Google
+            const garaGoogle = recensioniData.garaGoogle;
+            document.getElementById('googleCount').textContent = garaGoogle.count || '-';
+            document.getElementById('googleAvg').textContent = garaGoogle.avgRating > 0 ? garaGoogle.avgRating.toFixed(1) : '-';
+        }
+
+        function renderKPIs() {
+            const kpis = currentStoreData.kpis;
+            const store = currentStoreData.storesRanking && currentStoreData.storesRanking[0];
+
+            const deltaBudget = store ? parseFloat(store.deltaBudgetPct) : 0;
+            const deltaAnno = store ? parseFloat(store.deltaAnnoPct) : 0;
+
+            document.getElementById('kpiGrid').innerHTML = `
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-icon orange">💵</div>
+                    </div>
+                    <div class="kpi-label">Fatturato Netto</div>
+                    <div class="kpi-value">€${formatNumber(kpis.fatturatoNetto)}</div>
+                    <div class="kpi-change ${deltaBudget >= 0 ? 'positive' : 'negative'}">
+                        <span>${deltaBudget >= 0 ? '▲' : '▼'}</span>
+                        ${Math.abs(deltaBudget).toFixed(1)}%
+                        <span class="kpi-period">vs Budget</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-icon blue">📈</div>
+                    </div>
+                    <div class="kpi-label">vs Anno Prec.</div>
+                    <div class="kpi-value">${deltaAnno > 0 ? '+' : ''}${deltaAnno.toFixed(1)}%</div>
+                    <div class="kpi-change ${deltaAnno >= 0 ? 'positive' : 'negative'}">
+                        <span>${deltaAnno >= 0 ? '▲' : '▼'}</span>
+                        Trend
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-icon green">👥</div>
+                    </div>
+                    <div class="kpi-label">Coperti Totali</div>
+                    <div class="kpi-value">${formatNumber(kpis.coperti)}</div>
+                    <div class="kpi-change">
+                        <span class="kpi-period">Periodo selezionato</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-icon purple">🍽️</div>
+                    </div>
+                    <div class="kpi-label">Scontrino Medio</div>
+                    <div class="kpi-value">€${kpis.scontrinoMedio}</div>
+                    <div class="kpi-change">
+                        <span class="kpi-period">Media periodo</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMixCanali() {
+            const mix = currentStoreData.kpis.mixCanali;
+
+            document.getElementById('mixGrid').innerHTML = `
+                <div class="mix-item store">
+                    <div class="mix-value">${mix.store.toFixed(1)}%</div>
+                    <div class="mix-label">Store</div>
+                </div>
+                <div class="mix-item asporto">
+                    <div class="mix-value">${mix.asporto.toFixed(1)}%</div>
+                    <div class="mix-label">Asporto</div>
+                </div>
+                <div class="mix-item deliveroo">
+                    <div class="mix-value">${mix.deliveroo.toFixed(1)}%</div>
+                    <div class="mix-label">Deliveroo</div>
+                </div>
+                <div class="mix-item glovo">
+                    <div class="mix-value">${mix.glovo.toFixed(1)}%</div>
+                    <div class="mix-label">Glovo</div>
+                </div>
+                <div class="mix-item justeat">
+                    <div class="mix-value">${mix.justEat.toFixed(1)}%</div>
+                    <div class="mix-label">Just Eat</div>
+                </div>
+            `;
+        }
+
+        function renderPlatformData(storeName) {
+            // Helper to check if store name matches
+            const matchStoreName = (platformName, searchName) => {
+                const pName = platformName.toUpperCase();
+                const sName = searchName.toUpperCase();
+                return pName.includes(sName.replace('FDV ', '').replace('FRA DIAVOLO ', '')) ||
+                       sName.includes(pName.replace('FDV ', ''));
+            };
+
+            // Helper to check if week is in range
+            const isWeekInRange = (weekStr) => {
+                if (filterState.granularity !== 'weekly') return true;
+
+                // Parse week from formats like "W45", "2025-W45", "45"
+                let weekNum;
+                if (weekStr.includes('W')) {
+                    weekNum = parseInt(weekStr.split('W')[1]);
+                } else {
+                    weekNum = parseInt(weekStr);
+                }
+
+                return weekNum >= filterState.weekFrom && weekNum <= filterState.weekTo;
+            };
+
+            // ===== GLOVO: Aggregate from timeSeries =====
+            let glovoGmv = 0, glovoOrders = 0, glovoRating = '-';
+
+            if (glovoData && glovoData.stores) {
+                // Find matching store
+                const glovoStore = glovoData.stores.find(s => matchStoreName(s.name, storeName));
+
+                if (glovoStore) {
+                    // Get store ID
+                    const storeId = glovoStore.id;
+
+                    // If weekly filter, aggregate from timeSeries
+                    if (filterState.granularity === 'weekly' && glovoData.timeSeries && glovoData.timeSeries[storeId]) {
+                        const storeTimeSeries = glovoData.timeSeries[storeId];
+                        storeTimeSeries.forEach(entry => {
+                            if (isWeekInRange(entry.week)) {
+                                glovoGmv += entry.gmv || 0;
+                            }
+                        });
+                        // Orders not available per week in timeSeries, use proportional estimate
+                        const totalGmv = glovoStore.gmv || 1;
+                        glovoOrders = Math.round((glovoGmv / totalGmv) * glovoStore.orders);
+                    } else {
+                        // Use total values
+                        glovoGmv = glovoStore.gmv;
+                        glovoOrders = glovoStore.orders;
+                    }
+
+                    glovoRating = glovoStore.rating;
+                }
+            }
+
+            // Render Glovo KPIs
+            if (glovoGmv > 0) {
+                const glovoAov = glovoOrders > 0 ? (glovoGmv / glovoOrders).toFixed(2) : '0';
+                document.getElementById('glovoGmv').textContent = `€${formatNumber(glovoGmv)}`;
+                document.getElementById('glovoOrders').textContent = formatNumber(glovoOrders);
+                document.getElementById('glovoAov').textContent = `€${glovoAov}`;
+                document.getElementById('glovoRating').textContent = glovoRating;
+            } else {
+                document.getElementById('glovoGmv').textContent = '-';
+                document.getElementById('glovoOrders').textContent = '-';
+                document.getElementById('glovoAov').textContent = '-';
+                document.getElementById('glovoRating').textContent = '-';
+            }
+
+            // ===== DELIVEROO: Aggregate from timeSeries =====
+            let deliverooGmv = 0, deliverooOrders = 0, deliverooRating = '-';
+
+            if (deliverooData && deliverooData.stores) {
+                // Find matching store
+                const deliverooStore = deliverooData.stores.find(s => matchStoreName(s.storeName, storeName));
+
+                if (deliverooStore) {
+                    const originalName = deliverooStore.originalStoreName || deliverooStore.storeName;
+
+                    // If weekly filter, aggregate from timeSeries
+                    if (filterState.granularity === 'weekly' && deliverooData.timeSeries && deliverooData.timeSeries[originalName]) {
+                        const storeTimeSeries = deliverooData.timeSeries[originalName];
+                        storeTimeSeries.forEach(entry => {
+                            if (isWeekInRange(entry.week)) {
+                                deliverooGmv += entry.gmv || 0;
+                                deliverooOrders += entry.orders || 0;
+                            }
+                        });
+                    } else {
+                        // Use total values
+                        deliverooGmv = deliverooStore.gmv;
+                        deliverooOrders = deliverooStore.orders;
+                    }
+
+                    // Get rating from ops data
+                    const deliverooOps = deliverooData.ops?.byStore?.find(s => matchStoreName(s.storeName, storeName));
+                    deliverooRating = deliverooOps ? deliverooOps.avgRating.toFixed(1) : '-';
+                }
+            }
+
+            // Render Deliveroo KPIs
+            if (deliverooGmv > 0) {
+                const deliverooAov = deliverooOrders > 0 ? (deliverooGmv / deliverooOrders).toFixed(2) : '0';
+                document.getElementById('deliverooGmv').textContent = `€${formatNumber(deliverooGmv)}`;
+                document.getElementById('deliverooOrders').textContent = formatNumber(deliverooOrders);
+                document.getElementById('deliverooAov').textContent = `€${deliverooAov}`;
+                document.getElementById('deliverooRating').textContent = deliverooRating;
+            } else {
+                document.getElementById('deliverooGmv').textContent = '-';
+                document.getElementById('deliverooOrders').textContent = '-';
+                document.getElementById('deliverooAov').textContent = '-';
+                document.getElementById('deliverooRating').textContent = '-';
+            }
+        }
+
+        function renderTrendChart() {
+            const timeSeries = currentStoreData.timeSeries || [];
+            const canvas = document.getElementById('trendChart');
+
+            if (trendChartInstance) trendChartInstance.destroy();
+
+            const labels = timeSeries.map(d => {
+                if (trendPeriod === 'weekly') {
+                    return `Sett. ${d.period.replace('W', '')}`;
+                } else {
+                    const [year, month] = d.period.split('-');
+                    const monthNames = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+                    return `${monthNames[parseInt(month) - 1]} ${year}`;
+                }
+            });
+
+            const netto = timeSeries.map(d => d.netto);
+            const budget = timeSeries.map(d => d.budget);
+            const nettoAP = timeSeries.map(d => d.nettoAP);
+
+            trendChartInstance = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Fatturato',
+                            data: netto,
+                            borderColor: '#EA580C',
+                            backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Budget',
+                            data: budget,
+                            borderColor: '#FDBA74',
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 3
+                        },
+                        {
+                            label: 'Anno Prec.',
+                            data: nettoAP,
+                            borderColor: '#D1D5DB',
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            backgroundColor: '#1F2937',
+                            padding: 12,
+                            callbacks: {
+                                label: (ctx) => `${ctx.dataset.label}: €${formatNumber(ctx.parsed.y)}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false }
+                        },
+                        y: {
+                            grid: { color: '#F3F4F6' },
+                            ticks: {
+                                callback: (val) => '€' + formatNumber(val)
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function setTrendPeriod(period) {
+            trendPeriod = period;
+
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.period === period) {
+                    btn.classList.add('active');
+                }
+            });
+
+            if (document.getElementById('storeSelector').value) {
+                loadStoreData();
+            }
+        }
+
+        function formatNumber(num) {
+            return Math.round(num).toLocaleString('it-IT');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fradiavolo - Delivery Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #F8F9FA; min-height: 100vh; display: flex; }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar { width: 260px; background: #FFFFFF; border-right: 1px solid #E5E7EB; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; }
+        .logo { padding: 24px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #E5E7EB; }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .logo-text { font-size: 20px; font-weight: 700; color: #1F2937; }
+        .nav-section { padding: 20px 12px; flex: 1; }
+        .nav-label { font-size: 11px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 12px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; cursor: pointer; transition: all 0.2s; text-decoration: none; color: #6B7280; font-size: 14px; font-weight: 500; margin-bottom: 4px; position: relative; }
+        .nav-item:hover { background: #FFF7ED; color: #EA580C; }
+        .nav-item.active { background: #FFF7ED; color: #EA580C; }
+        .nav-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 24px; background: #EA580C; border-radius: 0 4px 4px 0; }
+        .nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+
+        /* ===== MAIN CONTENT ===== */
+        main { flex: 1; margin-left: 260px; padding: 24px; min-height: 100vh; }
+
+        /* Page Header */
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .page-title-section h1 { font-size: 24px; font-weight: 700; color: #1F2937; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+        .page-title-section p { font-size: 14px; color: #6B7280; }
+        .header-actions { display: flex; gap: 12px; }
+        .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+        .btn-export { background: #10B981; color: white; }
+        .btn-export:hover { background: #059669; }
+
+        /* Filters */
+        .filters-card { background: #FFFFFF; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
+        .filter-group { flex: 1; min-width: 180px; }
+        .filter-group label { display: block; font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 6px; text-transform: uppercase; }
+
+        /* Multi-select Dropdown */
+        .multi-select { position: relative; }
+        .multi-select-btn { width: 100%; padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 14px; background: white; cursor: pointer; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+        .multi-select-btn:hover { border-color: #667eea; }
+        .multi-select-btn.active { border-color: #667eea; box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2); }
+        .multi-select-btn .arrow { transition: transform 0.2s; }
+        .multi-select-btn.active .arrow { transform: rotate(180deg); }
+        .multi-select-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #E5E7EB; border-radius: 8px; margin-top: 4px; max-height: 250px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .multi-select-dropdown.show { display: block; }
+        .multi-select-item { padding: 10px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.15s; }
+        .multi-select-item:hover { background: #F3F4F6; }
+        .multi-select-item.selected { background: rgba(102, 126, 234, 0.1); }
+        .multi-select-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: #667eea; }
+        .multi-select-item.select-all { border-bottom: 1px solid #E5E7EB; font-weight: 600; background: #F9FAFB; }
+
+        .reset-btn { background: #EF4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .reset-btn:hover { background: #DC2626; }
+
+        /* Content Card */
+        .content-card { background: #FFFFFF; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .section-title { font-size: 18px; font-weight: 700; color: #1F2937; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #667eea; display: flex; justify-content: space-between; align-items: center; }
+
+        /* KPI Summary */
+        .kpi-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .kpi-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px; border-radius: 12px; }
+        .kpi-card h3 { font-size: 12px; font-weight: 600; margin-bottom: 6px; opacity: 0.9; text-transform: uppercase; }
+        .kpi-card .value { font-size: 24px; font-weight: 700; }
+        .kpi-card .unit { font-size: 12px; opacity: 0.8; margin-top: 4px; }
+
+        /* Tables */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #F9FAFB; padding: 12px 14px; text-align: left; font-weight: 600; font-size: 11px; color: #6B7280; border-bottom: 2px solid #E5E7EB; text-transform: uppercase; white-space: nowrap; position: sticky; top: 0; }
+        td { padding: 12px 14px; border-bottom: 1px solid #F3F4F6; color: #374151; white-space: nowrap; }
+        tr:hover { background: #F9FAFB; }
+        th.sortable { cursor: pointer; user-select: none; }
+        th.sortable:hover { background: #F3F4F6; }
+        th.sortable::after { content: ' ⇅'; opacity: 0.3; font-size: 10px; }
+        th.sorted-asc::after { content: ' ↑'; opacity: 1; color: #667eea; }
+        th.sorted-desc::after { content: ' ↓'; opacity: 1; color: #667eea; }
+
+        /* Cost Badge */
+        .cost-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .cost-low { background: #D1FAE5; color: #065F46; }
+        .cost-medium { background: #FEF3C7; color: #92400E; }
+        .cost-high { background: #FEE2E2; color: #991B1B; }
+
+        /* Week Header */
+        .week-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 700; }
+        .week-header td { padding: 14px; font-size: 14px; }
+
+        /* Totals Row */
+        .totals-row { background: #F3F4F6; font-weight: 700; }
+        .totals-row td { border-top: 2px solid #E5E7EB; }
+
+        /* Loading */
+        .loading { text-align: center; padding: 60px; color: #6B7280; }
+        .loading-spinner { width: 40px; height: 40px; border: 4px solid #E5E7EB; border-top-color: #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== HAMBURGER MENU ===== */
+        .hamburger-btn { display: none; width: 40px; height: 40px; border: none; background: transparent; cursor: pointer; padding: 8px; border-radius: 8px; flex-direction: column; justify-content: center; align-items: center; gap: 5px; }
+        .hamburger-btn:hover { background: #F3F4F6; }
+        .hamburger-btn span { display: block; width: 20px; height: 2px; background: #374151; border-radius: 2px; transition: all 0.3s; }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 99; }
+        .sidebar-overlay.open { display: block; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .sidebar { width: 220px; }
+            main { margin-left: 220px; padding: 24px; }
+            .filters-card { flex-wrap: wrap; }
+        }
+        @media (max-width: 768px) {
+            .hamburger-btn { display: flex; }
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; z-index: 100; }
+            .sidebar.open { transform: translateX(0); }
+            main { margin-left: 0; padding: 16px; }
+            .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .header-actions { width: 100%; flex-wrap: wrap; }
+            .header-actions .btn { flex: 1; justify-content: center; }
+            .filters-card { flex-direction: column; }
+            .filter-group { width: 100%; }
+            table { min-width: 800px; }
+            .table-container { overflow-x: auto; }
+        }
+        @media (max-width: 480px) {
+            .logo-text { font-size: 16px; }
+            .nav-item { padding: 10px 12px; font-size: 13px; }
+            h1 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">🍕</div>
+            <span class="logo-text">Fradiavolo</span>
+        </div>
+        <nav class="nav-section">
+            <div class="nav-label">Menu</div>
+            <a href="dash.html" class="nav-item">
+                <span class="nav-icon">📊</span>
+                Dashboard
+            </a>
+            <a href="stores.html" class="nav-item">
+                <span class="nav-icon">🏪</span>
+                Stores
+            </a>
+            <a href="recensioni.html" class="nav-item">
+                <span class="nav-icon">⭐</span>
+                Recensioni
+            </a>
+            <a href="glovo.html" class="nav-item">
+                <span class="nav-icon">🟡</span>
+                Glovo
+            </a>
+            <a href="deliveroo.html" class="nav-item">
+                <span class="nav-icon">🔵</span>
+                Deliveroo
+            </a>
+            <a href="justeat.html" class="nav-item">
+                <span class="nav-icon">🟠</span>
+                Just Eat
+            </a>
+            <a href="combined.html" class="nav-item">
+                <span class="nav-icon">📦</span>
+                Delivery Multipiattaforma
+            </a>
+        </nav>
+    </aside>
+
+    <main>
+        <div class="page-header">
+            <button class="hamburger-btn" onclick="toggleSidebar()">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="page-title-section">
+                <h1>📋 Delivery Report</h1>
+                <p>Report costi e marginalità per punto vendita e settimana</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-export" onclick="exportCSV()">📥 Esporta CSV</button>
+                <button class="btn btn-primary" onclick="loadData()">🔄 Aggiorna Dati</button>
+            </div>
+        </div>
+
+        <div class="filters-card">
+            <div class="filter-group">
+                <label>Settimana</label>
+                <div class="multi-select" id="weekMultiSelect">
+                    <button class="multi-select-btn" onclick="toggleDropdown('week')">
+                        <span id="weekLabel">Tutte le settimane</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="multi-select-dropdown" id="weekDropdown"></div>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>Città</label>
+                <div class="multi-select" id="cityMultiSelect">
+                    <button class="multi-select-btn" onclick="toggleDropdown('city')">
+                        <span id="cityLabel">Tutte le città</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="multi-select-dropdown" id="cityDropdown"></div>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>Store</label>
+                <div class="multi-select" id="storeMultiSelect">
+                    <button class="multi-select-btn" onclick="toggleDropdown('store')">
+                        <span id="storeLabel">Tutti gli store</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="multi-select-dropdown" id="storeDropdown"></div>
+                </div>
+            </div>
+            <button class="reset-btn" onclick="resetFilters()">Reset</button>
+        </div>
+
+        <div class="content-card">
+            <div class="section-title">
+                <span>📊 Report Dettagliato per Settimana</span>
+                <span id="recordCount" style="font-size: 13px; font-weight: 500; color: #6B7280;"></span>
+            </div>
+
+            <div class="kpi-summary" id="kpiSummary"></div>
+
+            <div class="table-container" id="reportTable">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Caricamento dati...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Mobile sidebar toggle
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('open');
+        }
+
+        const API_URL = '/api/delivery-report';
+
+        let currentData = null;
+        let reportData = [];
+
+        // Multi-select state
+        let selectedWeeks = [];
+        let selectedCities = [];
+        let selectedStores = [];
+        let allWeeks = [];
+        let allCities = [];
+        let allStores = [];
+        let filtersInitialized = false;
+
+        // Sorting
+        let sortColumn = 'week';
+        let sortDirection = 'asc';
+
+        window.addEventListener('DOMContentLoaded', () => { loadData(); });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.multi-select')) {
+                document.querySelectorAll('.multi-select-dropdown').forEach(d => d.classList.remove('show'));
+                document.querySelectorAll('.multi-select-btn').forEach(b => b.classList.remove('active'));
+            }
+        });
+
+        function toggleDropdown(type) {
+            event.stopPropagation();
+            const dropdown = document.getElementById(`${type}Dropdown`);
+            const btn = dropdown.previousElementSibling;
+            const isOpen = dropdown.classList.contains('show');
+
+            document.querySelectorAll('.multi-select-dropdown').forEach(d => d.classList.remove('show'));
+            document.querySelectorAll('.multi-select-btn').forEach(b => b.classList.remove('active'));
+
+            if (!isOpen) {
+                dropdown.classList.add('show');
+                btn.classList.add('active');
+            }
+        }
+
+        function toggleSelection(type, value) {
+            let selected, allItems;
+            if (type === 'week') { selected = selectedWeeks; allItems = allWeeks; }
+            else if (type === 'city') { selected = selectedCities; allItems = allCities; }
+            else { selected = selectedStores; allItems = allStores; }
+
+            if (value === 'all') {
+                if (selected.length === allItems.length) { selected.length = 0; }
+                else { selected.length = 0; selected.push(...allItems); }
+            } else {
+                const idx = selected.indexOf(value);
+                if (idx > -1) selected.splice(idx, 1);
+                else selected.push(value);
+            }
+            updateDropdownUI(type);
+            updateLabel(type);
+            loadData();
+        }
+
+        function updateDropdownUI(type) {
+            let selected, allItems;
+            if (type === 'week') { selected = selectedWeeks; allItems = allWeeks; }
+            else if (type === 'city') { selected = selectedCities; allItems = allCities; }
+            else { selected = selectedStores; allItems = allStores; }
+
+            const dropdown = document.getElementById(`${type}Dropdown`);
+            if (!dropdown) return;
+            dropdown.querySelectorAll('.multi-select-item').forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                const value = item.dataset.value;
+                if (value === 'all') {
+                    checkbox.checked = selected.length === allItems.length && allItems.length > 0;
+                    checkbox.indeterminate = selected.length > 0 && selected.length < allItems.length;
+                } else {
+                    const isSelected = selected.includes(value);
+                    checkbox.checked = isSelected;
+                    item.classList.toggle('selected', isSelected);
+                }
+            });
+        }
+
+        function updateLabel(type) {
+            let selected, allItems, labelEl, allText;
+            if (type === 'week') {
+                selected = selectedWeeks; allItems = allWeeks;
+                labelEl = document.getElementById('weekLabel');
+                allText = 'Tutte le settimane';
+            } else if (type === 'city') {
+                selected = selectedCities; allItems = allCities;
+                labelEl = document.getElementById('cityLabel');
+                allText = 'Tutte le città';
+            } else {
+                selected = selectedStores; allItems = allStores;
+                labelEl = document.getElementById('storeLabel');
+                allText = 'Tutti gli store';
+            }
+
+            if (selected.length === 0 || selected.length === allItems.length) {
+                labelEl.textContent = allText;
+            } else if (selected.length === 1) {
+                labelEl.textContent = selected[0];
+            } else {
+                labelEl.textContent = `${selected.length} selezionati`;
+            }
+        }
+
+        function populateMultiSelect(type, items) {
+            const dropdown = document.getElementById(`${type}Dropdown`);
+            let html = `<div class="multi-select-item select-all" data-value="all" onclick="toggleSelection('${type}', 'all')">
+                <input type="checkbox" onclick="event.stopPropagation(); toggleSelection('${type}', 'all')"><span>Seleziona tutti</span></div>`;
+            items.forEach(item => {
+                const value = String(item).replace(/'/g, "\\'");
+                html += `<div class="multi-select-item" data-value="${item}" onclick="toggleSelection('${type}', '${value}')">
+                    <input type="checkbox" onclick="event.stopPropagation(); toggleSelection('${type}', '${value}')"><span>${item}</span></div>`;
+            });
+            dropdown.innerHTML = html;
+            updateDropdownUI(type);
+        }
+
+        async function loadData() {
+            const weeks = selectedWeeks.length > 0 && selectedWeeks.length < allWeeks.length ? selectedWeeks.join(',') : 'all';
+            const cities = selectedCities.length > 0 && selectedCities.length < allCities.length ? selectedCities.join(',') : 'all';
+            const stores = selectedStores.length > 0 && selectedStores.length < allStores.length ? selectedStores.join(',') : 'all';
+
+            try {
+                const response = await fetch(`${API_URL}?week=${weeks}&city=${cities}&store=${stores}`);
+                currentData = await response.json();
+                reportData = currentData.report || [];
+
+                if (!filtersInitialized) {
+                    populateFilters();
+                    filtersInitialized = true;
+                }
+
+                renderKPISummary();
+                renderTable();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('reportTable').innerHTML = `
+                    <div class="loading" style="color: #DC2626;">
+                        <p>❌ Errore nel caricamento dati</p>
+                        <p style="font-size: 12px; margin-top: 8px;">Verifica che il backend sia attivo su localhost:4000</p>
+                    </div>`;
+            }
+        }
+
+        function populateFilters() {
+            allWeeks = currentData.filters?.weeks || [];
+            allCities = currentData.filters?.cities || [];
+            allStores = currentData.filters?.stores || [];
+
+            populateMultiSelect('week', allWeeks);
+            populateMultiSelect('city', allCities);
+            populateMultiSelect('store', allStores);
+            updateLabel('week');
+            updateLabel('city');
+            updateLabel('store');
+        }
+
+        function resetFilters() {
+            selectedWeeks = [];
+            selectedCities = [];
+            selectedStores = [];
+            updateDropdownUI('week');
+            updateDropdownUI('city');
+            updateDropdownUI('store');
+            updateLabel('week');
+            updateLabel('city');
+            updateLabel('store');
+            loadData();
+        }
+
+        function formatNumber(num) {
+            if (num === null || num === undefined || isNaN(num)) return '€0';
+            return '€' + Math.round(num).toLocaleString('it-IT');
+        }
+
+        function formatPercent(num) {
+            if (num === null || num === undefined || isNaN(num)) return '0%';
+            return num.toFixed(1) + '%';
+        }
+
+        function getCostBadgeClass(percent) {
+            if (percent <= 35) return 'cost-low';
+            if (percent <= 45) return 'cost-medium';
+            return 'cost-high';
+        }
+
+        function renderKPISummary() {
+            const totals = currentData.totals || {};
+
+            document.getElementById('kpiSummary').innerHTML = `
+                <div class="kpi-card">
+                    <h3>💵 GMV Totale</h3>
+                    <div class="value">${formatNumber(totals.gmv)}</div>
+                    <div class="unit">Glovo + Deliveroo</div>
+                </div>
+                <div class="kpi-card">
+                    <h3>📢 Ads Totale</h3>
+                    <div class="value">${formatNumber(totals.ads)}</div>
+                    <div class="unit">Spesa pubblicitaria</div>
+                </div>
+                <div class="kpi-card">
+                    <h3>🏷️ Sconti Totali</h3>
+                    <div class="value">${formatNumber(totals.sconti)}</div>
+                    <div class="unit">Promozioni</div>
+                </div>
+                <div class="kpi-card">
+                    <h3>💳 Commissioni</h3>
+                    <div class="value">${formatNumber(totals.commissioni)}</div>
+                    <div class="unit">25% del GMV</div>
+                </div>
+                <div class="kpi-card">
+                    <h3>📊 % Cost Media</h3>
+                    <div class="value">${formatPercent(totals.percentCost)}</div>
+                    <div class="unit">Incidenza costi</div>
+                </div>
+            `;
+        }
+
+        function sortData(column) {
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = 'desc';
+            }
+            renderTable();
+        }
+
+        function renderTable() {
+            if (!reportData || reportData.length === 0) {
+                document.getElementById('reportTable').innerHTML = `
+                    <div class="loading">
+                        <p>Nessun dato disponibile</p>
+                    </div>`;
+                document.getElementById('recordCount').textContent = '';
+                return;
+            }
+
+            // Sort data
+            const sorted = [...reportData].sort((a, b) => {
+                let valA = a[sortColumn];
+                let valB = b[sortColumn];
+
+                if (sortColumn === 'week') {
+                    valA = parseInt(valA) || 0;
+                    valB = parseInt(valB) || 0;
+                } else if (sortColumn === 'store') {
+                    valA = valA || '';
+                    valB = valB || '';
+                    return sortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                }
+
+                if (sortDirection === 'asc') return valA - valB;
+                return valB - valA;
+            });
+
+            // Group by week
+            const byWeek = {};
+            sorted.forEach(row => {
+                const week = row.week;
+                if (!byWeek[week]) byWeek[week] = [];
+                byWeek[week].push(row);
+            });
+
+            const sortIcon = (col) => {
+                if (sortColumn !== col) return '';
+                return sortDirection === 'asc' ? ' sorted-asc' : ' sorted-desc';
+            };
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="sortable${sortIcon('week')}" onclick="sortData('week')">Settimana</th>
+                            <th class="sortable${sortIcon('store')}" onclick="sortData('store')">Punto Vendita</th>
+                            <th class="sortable${sortIcon('gmv')}" onclick="sortData('gmv')">GMV Totale</th>
+                            <th class="sortable${sortIcon('ads')}" onclick="sortData('ads')">Ads Totale</th>
+                            <th class="sortable${sortIcon('sconti')}" onclick="sortData('sconti')">Sconti Totali</th>
+                            <th class="sortable${sortIcon('commissioni')}" onclick="sortData('commissioni')">Commissioni (25%)</th>
+                            <th class="sortable${sortIcon('percentCost')}" onclick="sortData('percentCost')">% Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            // Sort weeks
+            const weeks = Object.keys(byWeek).sort((a, b) => parseInt(a) - parseInt(b));
+
+            weeks.forEach(week => {
+                const rows = byWeek[week];
+
+                // Week totals
+                const weekTotals = rows.reduce((acc, r) => {
+                    acc.gmv += r.gmv || 0;
+                    acc.ads += r.ads || 0;
+                    acc.sconti += r.sconti || 0;
+                    acc.commissioni += r.commissioni || 0;
+                    return acc;
+                }, { gmv: 0, ads: 0, sconti: 0, commissioni: 0 });
+
+                const weekPercentCost = (weekTotals.gmv + weekTotals.sconti) > 0
+                    ? ((weekTotals.ads + weekTotals.sconti + weekTotals.commissioni) / (weekTotals.gmv + weekTotals.sconti)) * 100
+                    : 0;
+
+                // Week header
+                html += `
+                    <tr class="week-header">
+                        <td colspan="7">📅 Settimana ${week} - Totale: GMV ${formatNumber(weekTotals.gmv)} | Ads ${formatNumber(weekTotals.ads)} | Sconti ${formatNumber(weekTotals.sconti)} | Commissioni ${formatNumber(weekTotals.commissioni)} | % Cost: ${formatPercent(weekPercentCost)}</td>
+                    </tr>
+                `;
+
+                // Store rows
+                rows.forEach(row => {
+                    const costClass = getCostBadgeClass(row.percentCost || 0);
+                    html += `
+                        <tr>
+                            <td>W${row.week}</td>
+                            <td><strong>${row.store || 'N/A'}</strong></td>
+                            <td>${formatNumber(row.gmv)}</td>
+                            <td>${formatNumber(row.ads)}</td>
+                            <td>${formatNumber(row.sconti)}</td>
+                            <td>${formatNumber(row.commissioni)}</td>
+                            <td><span class="cost-badge ${costClass}">${formatPercent(row.percentCost)}</span></td>
+                        </tr>
+                    `;
+                });
+            });
+
+            html += '</tbody></table>';
+
+            document.getElementById('reportTable').innerHTML = html;
+            document.getElementById('recordCount').textContent = `${reportData.length} righe`;
+        }
+
+        function exportCSV() {
+            if (!reportData || reportData.length === 0) {
+                alert('Nessun dato da esportare');
+                return;
+            }
+
+            const headers = ['Settimana', 'Punto Vendita', 'Città', 'GMV Totale', 'Ads Totale', 'Sconti Totali', 'Commissioni (25%)', '% Cost'];
+            const rows = reportData.map(r => [
+                `W${r.week}`,
+                r.store,
+                r.city,
+                r.gmv?.toFixed(2) || '0',
+                r.ads?.toFixed(2) || '0',
+                r.sconti?.toFixed(2) || '0',
+                r.commissioni?.toFixed(2) || '0',
+                r.percentCost?.toFixed(2) || '0'
+            ]);
+
+            const csv = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `delivery-report-${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fradiavolo - Just Eat Analytics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #F8F9FA; min-height: 100vh; display: flex; }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar { width: 260px; background: #FFFFFF; border-right: 1px solid #E5E7EB; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; }
+        .logo { padding: 24px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #E5E7EB; }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .logo-text { font-size: 20px; font-weight: 700; color: #1F2937; }
+        .nav-section { padding: 20px 12px; flex: 1; }
+        .nav-label { font-size: 11px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 12px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; cursor: pointer; transition: all 0.2s; text-decoration: none; color: #6B7280; font-size: 14px; font-weight: 500; margin-bottom: 4px; position: relative; }
+        .nav-item:hover { background: #FFF7ED; color: #EA580C; }
+        .nav-item.active { background: #FFF7ED; color: #EA580C; }
+        .nav-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 24px; background: #EA580C; border-radius: 0 4px 4px 0; }
+        .nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+
+        /* ===== MAIN CONTENT ===== */
+        main { flex: 1; margin-left: 260px; padding: 24px; min-height: 100vh; }
+
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .page-title-section h1 { font-size: 24px; font-weight: 700; color: #1F2937; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+        .page-title-section p { font-size: 14px; color: #6B7280; }
+        .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-primary { background: linear-gradient(135deg, #FF8000 0%, #FF5500 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255, 128, 0, 0.4); }
+
+        /* Filters */
+        .filters-card { background: #FFFFFF; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
+        .filter-group { flex: 1; min-width: 180px; }
+        .filter-group label { display: block; font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 6px; text-transform: uppercase; }
+        .reset-btn { background: #EF4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .reset-btn:hover { background: #DC2626; }
+
+        /* Multi-select Dropdown */
+        .multi-select { position: relative; }
+        .multi-select-btn { width: 100%; padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 14px; background: white; cursor: pointer; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+        .multi-select-btn:hover { border-color: #FF8000; }
+        .multi-select-btn.active { border-color: #FF8000; box-shadow: 0 0 0 2px rgba(255, 128, 0, 0.2); }
+        .multi-select-btn .arrow { transition: transform 0.2s; }
+        .multi-select-btn.active .arrow { transform: rotate(180deg); }
+        .multi-select-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #E5E7EB; border-radius: 8px; margin-top: 4px; max-height: 250px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .multi-select-dropdown.show { display: block; }
+        .multi-select-item { padding: 10px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.15s; }
+        .multi-select-item:hover { background: #F3F4F6; }
+        .multi-select-item.selected { background: rgba(255, 128, 0, 0.1); }
+        .multi-select-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: #FF8000; }
+        .multi-select-item.select-all { border-bottom: 1px solid #E5E7EB; font-weight: 600; background: #F9FAFB; }
+
+        /* Tabs */
+        .tabs-card { background: #FFFFFF; border-radius: 12px; padding: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; gap: 8px; overflow-x: auto; }
+        .tab { padding: 12px 20px; border: none; background: transparent; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; color: #6B7280; transition: all 0.2s; white-space: nowrap; }
+        .tab:hover { background: #F3F4F6; }
+        .tab.active { background: linear-gradient(135deg, #FF8000 0%, #FF5500 100%); color: white; }
+
+        /* Content Card */
+        .content-card { background: #FFFFFF; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-height: 400px; }
+        .section-title { font-size: 18px; font-weight: 700; color: #1F2937; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #FF8000; }
+
+        /* KPI Cards */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .kpi-card { background: linear-gradient(135deg, #FF8000 0%, #FF5500 100%); color: white; padding: 20px; border-radius: 12px; }
+        .kpi-card h3 { font-size: 12px; font-weight: 600; margin-bottom: 8px; opacity: 0.9; text-transform: uppercase; }
+        .kpi-card .value { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+        .kpi-card .unit { font-size: 12px; opacity: 0.8; }
+
+        /* Tables */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #F9FAFB; padding: 12px 16px; text-align: left; font-weight: 600; font-size: 13px; color: #6B7280; border-bottom: 1px solid #E5E7EB; }
+        td { padding: 12px 16px; border-bottom: 1px solid #F3F4F6; font-size: 14px; color: #374151; }
+        tr:hover { background: #F9FAFB; }
+        th.sortable { cursor: pointer; user-select: none; }
+        th.sortable:hover { background: #F3F4F6; }
+        th.sortable::after { content: ' ⇅'; opacity: 0.3; font-size: 11px; }
+        th.sorted-asc::after { content: ' ↑'; opacity: 1; color: #FF8000; }
+        th.sorted-desc::after { content: ' ↓'; opacity: 1; color: #FF8000; }
+
+        /* Badges */
+        .medal { font-size: 1.4em; }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge.success { background: #D1FAE5; color: #065F46; }
+        .badge.warning { background: #FEF3C7; color: #92400E; }
+        .badge.danger { background: #FEE2E2; color: #991B1B; }
+
+        /* Charts */
+        .chart-section { background: #F9FAFB; border-radius: 12px; padding: 20px; margin-top: 24px; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .chart-title { font-size: 16px; font-weight: 600; color: #1F2937; }
+        canvas { max-height: 350px !important; }
+
+        /* Analysis */
+        .macro-section { background: #FFFFFF; border-radius: 12px; margin-bottom: 16px; overflow: hidden; border: 1px solid #E5E7EB; }
+        .macro-header { padding: 18px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
+        .macro-header:hover { background: #F9FAFB; }
+        .macro-header.operational { border-left: 4px solid #F59E0B; }
+        .macro-header.marketing { border-left: 4px solid #FF8000; }
+        .macro-title { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 600; color: #1F2937; }
+        .macro-count { background: #FF8000; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        .macro-toggle { font-size: 20px; color: #9CA3AF; transition: transform 0.3s; }
+        .macro-toggle.expanded { transform: rotate(180deg); }
+        .macro-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .macro-content.expanded { max-height: 5000px; transition: max-height 0.5s ease-in; }
+        .macro-body { padding: 20px; background: #F9FAFB; }
+        .store-card { background: #FFFFFF; border-left: 4px solid; padding: 16px; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .store-card.critical { border-color: #EF4444; }
+        .store-card.success { border-color: #10B981; }
+        .store-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .store-name { font-weight: 600; font-size: 14px; color: #1F2937; }
+        .store-city { font-size: 12px; color: #6B7280; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-top: 10px; }
+        .metric-item { background: #F9FAFB; padding: 10px; border-radius: 6px; }
+        .metric-label { color: #6B7280; font-size: 10px; text-transform: uppercase; margin-bottom: 4px; }
+        .metric-value { font-weight: 700; font-size: 15px; color: #1F2937; }
+        .empty-state { text-align: center; padding: 40px; color: #9CA3AF; font-size: 14px; }
+
+        /* ===== HAMBURGER MENU ===== */
+        .hamburger-btn { display: none; width: 40px; height: 40px; border: none; background: transparent; cursor: pointer; padding: 8px; border-radius: 8px; flex-direction: column; justify-content: center; align-items: center; gap: 5px; }
+        .hamburger-btn:hover { background: #F3F4F6; }
+        .hamburger-btn span { display: block; width: 20px; height: 2px; background: #374151; border-radius: 2px; transition: all 0.3s; }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 99; }
+        .sidebar-overlay.open { display: block; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .sidebar { width: 220px; }
+            main { margin-left: 220px; padding: 24px; }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .filters-card { flex-wrap: wrap; }
+        }
+        @media (max-width: 768px) {
+            .hamburger-btn { display: flex; }
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; z-index: 100; }
+            .sidebar.open { transform: translateX(0); }
+            main { margin-left: 0; padding: 16px; }
+            .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .kpi-grid { grid-template-columns: 1fr; gap: 12px; }
+            .filters-card { flex-direction: column; }
+            .filter-group { width: 100%; }
+            table { min-width: 500px; }
+            .table-container, #adsStoreTable { overflow-x: auto; }
+            .tab-btn { padding: 8px 12px; font-size: 12px; }
+        }
+        @media (max-width: 480px) {
+            .logo-text { font-size: 16px; }
+            .nav-item { padding: 10px 12px; font-size: 13px; }
+            h1 { font-size: 20px; }
+            .kpi-card h3 { font-size: 12px; }
+            .kpi-card .value { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">🍕</div>
+            <span class="logo-text">Fradiavolo</span>
+        </div>
+        <nav class="nav-section">
+            <div class="nav-label">Menu</div>
+            <a href="dash.html" class="nav-item">
+                <span class="nav-icon">📊</span>
+                Dashboard
+            </a>
+            <a href="stores.html" class="nav-item">
+                <span class="nav-icon">🏪</span>
+                Stores
+            </a>
+            <a href="recensioni.html" class="nav-item">
+                <span class="nav-icon">⭐</span>
+                Recensioni
+            </a>
+            <a href="glovo.html" class="nav-item">
+                <span class="nav-icon">🟡</span>
+                Glovo
+            </a>
+            <a href="deliveroo.html" class="nav-item">
+                <span class="nav-icon">🔵</span>
+                Deliveroo
+            </a>
+            <a href="justeat.html" class="nav-item active">
+                <span class="nav-icon">🟠</span>
+                Just Eat
+            </a>
+            <a href="combined.html" class="nav-item">
+                <span class="nav-icon">📦</span>
+                Delivery Multipiattaforma
+            </a>
+        </nav>
+    </aside>
+
+    <main>
+        <div class="page-header">
+            <button class="hamburger-btn" onclick="toggleSidebar()">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="page-title-section">
+                <h1>🍔 Just Eat Analytics</h1>
+                <p>Performance e metriche Just Eat</p>
+            </div>
+            <button class="btn btn-primary" onclick="loadData()">🔄 Aggiorna Dati</button>
+        </div>
+
+        <div class="filters-card">
+            <div class="filter-group">
+                <label>📅 Settimana</label>
+                <div class="multi-select" id="weekMultiSelect">
+                    <button class="multi-select-btn" onclick="toggleDropdown('week')">
+                        <span id="weekLabel">Tutte le settimane</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="multi-select-dropdown" id="weekDropdown"></div>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>🌍 Città</label>
+                <div class="multi-select" id="cityMultiSelect">
+                    <button class="multi-select-btn" onclick="toggleDropdown('city')">
+                        <span id="cityLabel">Tutte le città</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="multi-select-dropdown" id="cityDropdown"></div>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label>🏪 Store</label>
+                <div class="multi-select" id="storeMultiSelect">
+                    <button class="multi-select-btn" onclick="toggleDropdown('store')">
+                        <span id="storeLabel">Tutti gli store</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="multi-select-dropdown" id="storeDropdown"></div>
+                </div>
+            </div>
+            <button class="reset-btn" onclick="resetFilters()">🔄 Reset</button>
+        </div>
+
+        <div class="tabs-card">
+            <button class="tab active" onclick="showTab('overview')">📊 Overview</button>
+            <button class="tab" onclick="showTab('marketing')">📣 Marketing & Ads</button>
+            <button class="tab" onclick="showTab('analysis')">🔍 Analysis</button>
+            <button class="tab" onclick="showTab('stores')">🏪 Stores</button>
+            <button class="tab" onclick="showTab('ops')">⚙️ Operations</button>
+        </div>
+
+        <div class="content-card">
+            <div id="overview" class="tab-content">
+                <h2 class="section-title">📊 KPI Overview</h2>
+                <div class="kpi-grid" id="kpiGrid"></div>
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <span class="chart-title">📈 Trend GMV Settimanale</span>
+                    </div>
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <div id="marketing" class="tab-content" style="display:none;">
+                <h2 class="section-title">📣 Marketing & Advertising</h2>
+                <div class="kpi-grid" id="marketingKpiGrid"></div>
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <span class="chart-title">📈 Trend Spesa ADS vs GMV</span>
+                        <div class="chart-filter">
+                            <select id="adsStoreFilter" onchange="updateAdsChart()">
+                                <option value="_total">📊 Aggregato (Tutti)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <canvas id="adsTrendChart"></canvas>
+                </div>
+                <h3 style="margin: 24px 0 16px; color: #1F2937;">📊 Performance ADS per Store</h3>
+                <div class="table-container" id="adsStoreTable"></div>
+            </div>
+
+            <div id="analysis" class="tab-content" style="display:none;">
+                <h2 class="section-title">🔍 Analisi Automatica</h2>
+                <div id="analysisContent"></div>
+            </div>
+
+            <div id="stores" class="tab-content" style="display:none;">
+                <h2 class="section-title">🏪 Performance Stores</h2>
+                <div class="table-container" id="storesTable"></div>
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <span class="chart-title">📈 GMV per Store nel Tempo</span>
+                    </div>
+                    <canvas id="storesTrendChart"></canvas>
+                </div>
+            </div>
+
+            <div id="ops" class="tab-content" style="display:none;">
+                <h2 class="section-title">⚙️ Operations Monitoring</h2>
+                <div id="opsContent"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Mobile sidebar toggle
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('open');
+        }
+
+        const API_URL = '/api/justeat';
+        let currentData = null;
+        let trendChartInstance = null;
+        let storesTrendChartInstance = null;
+        let adsTrendChartInstance = null;
+
+        // Multi-select state
+        let selectedWeeks = [];
+        let selectedCities = [];
+        let selectedStores = [];
+        let allWeeks = [];
+        let allCities = [];
+        let allStores = [];
+        let filtersInitialized = false;
+
+        // Sorting
+        let storesSortColumn = 'gmv';
+        let storesSortDirection = 'desc';
+
+        window.addEventListener('DOMContentLoaded', () => loadData());
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.multi-select')) {
+                document.querySelectorAll('.multi-select-dropdown').forEach(d => d.classList.remove('show'));
+                document.querySelectorAll('.multi-select-btn').forEach(b => b.classList.remove('active'));
+            }
+        });
+
+        function toggleDropdown(type) {
+            event.stopPropagation();
+            const dropdown = document.getElementById(type + 'Dropdown');
+            const btn = dropdown.previousElementSibling;
+            document.querySelectorAll('.multi-select-dropdown').forEach(d => { if (d.id !== type + 'Dropdown') d.classList.remove('show'); });
+            document.querySelectorAll('.multi-select-btn').forEach(b => { if (b !== btn) b.classList.remove('active'); });
+            dropdown.classList.toggle('show');
+            btn.classList.toggle('active');
+        }
+
+        function toggleSelection(type, value) {
+            let selected, allItems;
+            if (type === 'week') { selected = selectedWeeks; allItems = allWeeks; }
+            else if (type === 'city') { selected = selectedCities; allItems = allCities; }
+            else { selected = selectedStores; allItems = allStores; }
+
+            if (value === 'all') {
+                if (selected.length === allItems.length) { selected.length = 0; }
+                else { selected.length = 0; selected.push(...allItems); }
+            } else {
+                const idx = selected.indexOf(value);
+                if (idx > -1) selected.splice(idx, 1);
+                else selected.push(value);
+            }
+            updateDropdownUI(type);
+            updateLabel(type);
+            loadData();
+        }
+
+        function updateDropdownUI(type) {
+            let selected, allItems;
+            if (type === 'week') { selected = selectedWeeks; allItems = allWeeks; }
+            else if (type === 'city') { selected = selectedCities; allItems = allCities; }
+            else { selected = selectedStores; allItems = allStores; }
+            const dropdown = document.getElementById(type + 'Dropdown');
+            if (!dropdown) return;
+            dropdown.querySelectorAll('.multi-select-item').forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                const value = item.dataset.value;
+                if (value === 'all') {
+                    checkbox.checked = selected.length === allItems.length && allItems.length > 0;
+                    checkbox.indeterminate = selected.length > 0 && selected.length < allItems.length;
+                } else {
+                    checkbox.checked = selected.includes(value);
+                    item.classList.toggle('selected', selected.includes(value));
+                }
+            });
+        }
+
+        function updateLabel(type) {
+            let selected, allItems, allLabel, labelEl;
+            if (type === 'week') { selected = selectedWeeks; allItems = allWeeks; allLabel = 'Tutte le settimane'; labelEl = document.getElementById('weekLabel'); }
+            else if (type === 'city') { selected = selectedCities; allItems = allCities; allLabel = 'Tutte le città'; labelEl = document.getElementById('cityLabel'); }
+            else { selected = selectedStores; allItems = allStores; allLabel = 'Tutti gli store'; labelEl = document.getElementById('storeLabel'); }
+
+            if (selected.length === 0 || selected.length === allItems.length) {
+                labelEl.textContent = allLabel;
+            } else if (selected.length === 1) {
+                labelEl.textContent = selected[0];
+            } else {
+                labelEl.textContent = `${selected.length} selezionati`;
+            }
+        }
+
+        function populateMultiSelect(type, items, displayFn = (i) => i, valueFn = (i) => i) {
+            const dropdown = document.getElementById(type + 'Dropdown');
+            let html = `<div class="multi-select-item select-all" data-value="all" onclick="toggleSelection('${type}', 'all')">
+                <input type="checkbox" onclick="event.stopPropagation(); toggleSelection('${type}', 'all')"><span>Seleziona tutti</span></div>`;
+            items.forEach(item => {
+                const value = valueFn(item);
+                const display = displayFn(item);
+                html += `<div class="multi-select-item" data-value="${value}" onclick="toggleSelection('${type}', '${value}')">
+                    <input type="checkbox" onclick="event.stopPropagation(); toggleSelection('${type}', '${value}')"><span>${display}</span></div>`;
+            });
+            dropdown.innerHTML = html;
+        }
+
+        async function loadData() {
+            const weeks = selectedWeeks.length > 0 && selectedWeeks.length < allWeeks.length ? selectedWeeks.join(',') : 'all';
+            const cities = selectedCities.length > 0 && selectedCities.length < allCities.length ? selectedCities.join(',') : 'all';
+            const stores = selectedStores.length > 0 && selectedStores.length < allStores.length ? selectedStores.join(',') : 'all';
+
+            try {
+                const response = await fetch(`${API_URL}?week=${weeks}&city=${cities}&store=${stores}`);
+                currentData = await response.json();
+                if (!filtersInitialized) { populateFilters(); filtersInitialized = true; }
+                const activeTab = document.querySelector('.tab.active').onclick.toString().match(/'(\w+)'/)[1];
+                renderContent(activeTab);
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Errore nel caricamento dati. Verifica che il backend sia attivo.');
+            }
+        }
+
+        function populateFilters() {
+            allWeeks = currentData.filters.weeks || [];
+            allCities = currentData.filters.cities || [];
+            allStores = (currentData.filters.stores || []).map(s => typeof s === 'object' ? s.name : s);
+            const storeItems = currentData.filters.stores || [];
+
+            populateMultiSelect('week', allWeeks, w => `W${w}`, w => w);
+            populateMultiSelect('city', allCities);
+            populateMultiSelect('store', storeItems, s => typeof s === 'object' ? s.name : s, s => typeof s === 'object' ? s.name : s);
+            updateLabel('week');
+            updateLabel('city');
+            updateLabel('store');
+        }
+
+        function resetFilters() {
+            selectedWeeks = [];
+            selectedCities = [];
+            selectedStores = [];
+            updateDropdownUI('week');
+            updateDropdownUI('city');
+            updateDropdownUI('store');
+            updateLabel('week');
+            updateLabel('city');
+            updateLabel('store');
+            loadData();
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            document.getElementById(tabName).style.display = 'block';
+            renderContent(tabName);
+        }
+
+        function renderContent(tabName) {
+            if (!currentData) return;
+            switch(tabName) {
+                case 'overview': renderOverview(); break;
+                case 'marketing': renderMarketing(); break;
+                case 'analysis': renderAnalysis(); break;
+                case 'stores': renderStores(); break;
+                case 'ops': renderOps(); break;
+            }
+        }
+
+        function formatNumber(num) { return num === null || num === undefined ? '0' : Math.round(num).toLocaleString('it-IT'); }
+        function formatDecimal(num, dec = 2) { return num === null || num === undefined ? '0' : Number(num).toFixed(dec); }
+
+        function renderOverview() {
+            const kpis = currentData.kpis;
+            const ops = currentData.ops;
+
+            document.getElementById('kpiGrid').innerHTML = `
+                <div class="kpi-card"><h3>💵 GMV Totale</h3><div class="value">€${formatNumber(kpis.totalGMV)}</div><div class="unit">Fatturato netto</div></div>
+                <div class="kpi-card"><h3>📦 Ordini</h3><div class="value">${formatNumber(kpis.totalOrders)}</div><div class="unit">Consegnati</div></div>
+                <div class="kpi-card"><h3>🛒 AOV</h3><div class="value">€${formatDecimal(kpis.aov)}</div><div class="unit">Scontrino medio</div></div>
+                <div class="kpi-card"><h3>⭐ Rating</h3><div class="value">${formatDecimal(ops.avgRating)}</div><div class="unit">Media valutazioni</div></div>
+                <div class="kpi-card"><h3>📶 Uptime</h3><div class="value">${formatDecimal(ops.avgUptime)}%</div><div class="unit">Disponibilità</div></div>
+            `;
+
+            // Trend Chart
+            const timeSeries = currentData.timeSeries?._total || [];
+            if (trendChartInstance) trendChartInstance.destroy();
+
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            trendChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timeSeries.map(t => t.week),
+                    datasets: [{
+                        label: 'GMV (€)',
+                        data: timeSeries.map(t => t.gmv),
+                        borderColor: '#FF8000',
+                        backgroundColor: 'rgba(255, 128, 0, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'top' }, datalabels: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { callback: v => `€${(v/1000).toFixed(0)}k` } } }
+                }
+            });
+        }
+
+        function renderMarketing() {
+            const kpis = currentData.kpis;
+            const stores = currentData.stores || [];
+
+            // KPI Grid
+            const commissioni = kpis.totalGMV * 0.25; // 25% del GMV
+            const denominator = kpis.totalGMV + kpis.discounts;
+            const percentCost = denominator > 0 ? ((kpis.advertisingCost + kpis.discounts + commissioni) / denominator * 100) : 0;
+            const costPerOrder = kpis.totalOrders > 0 ? (kpis.advertisingCost / kpis.totalOrders) : 0;
+            document.getElementById('marketingKpiGrid').innerHTML = `
+                <div class="kpi-card"><h3>💰 Spesa ADS Totale</h3><div class="value">€${formatNumber(kpis.advertisingCost)}</div><div class="unit">Investimento pubblicitario</div></div>
+                <div class="kpi-card"><h3>🎁 Sconti Totali</h3><div class="value">€${formatNumber(kpis.discounts)}</div><div class="unit">Promozioni applicate</div></div>
+                <div class="kpi-card"><h3>🏦 Commissioni (25%)</h3><div class="value">€${formatNumber(commissioni)}</div><div class="unit">25% del GMV</div></div>
+                <div class="kpi-card"><h3>💵 Costo per Ordine</h3><div class="value">€${formatDecimal(costPerOrder)}</div><div class="unit">Spesa ADS / Ordini</div></div>
+                <div class="kpi-card"><h3>📉 % Cost</h3><div class="value">${formatDecimal(percentCost)}%</div><div class="unit">(ADS+Sconti+Comm.) / (GMV+Sconti)</div></div>
+            `;
+
+            // Populate store filter
+            const filterSelect = document.getElementById('adsStoreFilter');
+            filterSelect.innerHTML = '<option value="_total">📊 Aggregato (Tutti)</option>';
+            stores.forEach(s => {
+                filterSelect.innerHTML += `<option value="${s.originalStoreName}">${s.storeName}</option>`;
+            });
+
+            // Render chart
+            updateAdsChart();
+
+            // Render table
+            let tableHtml = `<table>
+                <thead><tr>
+                    <th>🏪 Store</th>
+                    <th>💰 Spesa ADS</th>
+                    <th>🎁 Sconti</th>
+                    <th>💵 GMV</th>
+                    <th>📉 % Costo</th>
+                </tr></thead><tbody>`;
+
+            stores.sort((a, b) => b.advertisingCost - a.advertisingCost).forEach(s => {
+                const costPct = s.gmv > 0 ? ((s.advertisingCost + s.discounts) / s.gmv * 100) : 0;
+                const costClass = costPct <= 10 ? 'success' : costPct <= 20 ? 'warning' : 'danger';
+
+                tableHtml += `<tr>
+                    <td><strong>${s.storeName}</strong><br><small style="color:#6B7280">${s.city}</small></td>
+                    <td>€${formatNumber(s.advertisingCost)}</td>
+                    <td>€${formatNumber(s.discounts)}</td>
+                    <td>€${formatNumber(s.gmv)}</td>
+                    <td><span class="badge ${costClass}">${formatDecimal(costPct)}%</span></td>
+                </tr>`;
+            });
+
+            tableHtml += '</tbody></table>';
+            document.getElementById('adsStoreTable').innerHTML = tableHtml;
+        }
+
+        function updateAdsChart() {
+            const storeId = document.getElementById('adsStoreFilter').value;
+            const timeSeries = currentData.timeSeries || {};
+            const byWeek = currentData.ops?.byWeek || [];
+
+            if (adsTrendChartInstance) adsTrendChartInstance.destroy();
+
+            let labels, adsData, gmvData, percentCostData;
+
+            if (storeId === '_total') {
+                labels = byWeek.map(w => `W${w.week}`);
+                adsData = byWeek.map(w => w.advertisingCost);
+                gmvData = byWeek.map(w => w.gmv);
+                // % Cost = (ADS + Sconti + Commissioni) / (GMV + Sconti) * 100
+                percentCostData = byWeek.map(w => {
+                    const ads = w.advertisingCost || 0;
+                    const sconti = w.discounts || 0;
+                    const gmv = w.gmv || 0;
+                    const commissioni = gmv * 0.25;
+                    const denominator = gmv + sconti;
+                    return denominator > 0 ? ((ads + sconti + commissioni) / denominator * 100) : 0;
+                });
+            } else {
+                const storeData = timeSeries[storeId] || [];
+                labels = storeData.map(d => d.week);
+                adsData = storeData.map(d => d.ads || 0);
+                gmvData = storeData.map(d => d.gmv);
+                // % Cost per store
+                percentCostData = storeData.map(d => {
+                    const ads = d.ads || 0;
+                    const sconti = d.discounts || 0;
+                    const gmv = d.gmv || 0;
+                    const commissioni = gmv * 0.25;
+                    const denominator = gmv + sconti;
+                    return denominator > 0 ? ((ads + sconti + commissioni) / denominator * 100) : 0;
+                });
+            }
+
+            const ctx = document.getElementById('adsTrendChart').getContext('2d');
+            adsTrendChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Spesa ADS (€)',
+                            data: adsData,
+                            backgroundColor: 'rgba(255, 128, 0, 0.8)',
+                            borderColor: '#FF8000',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'GMV (€)',
+                            data: gmvData,
+                            type: 'line',
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: false,
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: '% Cost',
+                            data: percentCostData,
+                            type: 'line',
+                            borderColor: '#EF4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.4,
+                            yAxisID: 'y2',
+                            pointBackgroundColor: '#EF4444',
+                            pointRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'top' }, datalabels: { display: false } },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            beginAtZero: true,
+                            title: { display: true, text: 'Spesa ADS (€)' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            beginAtZero: true,
+                            title: { display: true, text: 'GMV (€)' },
+                            grid: { drawOnChartArea: false }
+                        },
+                        y2: {
+                            type: 'linear',
+                            position: 'right',
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: '% Cost' },
+                            grid: { drawOnChartArea: false },
+                            ticks: { callback: v => v + '%' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderAnalysis() {
+            const analysis = currentData.analysis || {};
+            let html = '';
+
+            // Criticità operative
+            const critical = analysis.operational?.critical || [];
+            html += `
+                <div class="macro-section">
+                    <div class="macro-header operational" onclick="toggleMacro(this)">
+                        <div class="macro-title">⚠️ Criticità Operative <span class="macro-count">${critical.length}</span></div>
+                        <span class="macro-toggle">▼</span>
+                    </div>
+                    <div class="macro-content">
+                        <div class="macro-body">
+            `;
+            if (critical.length === 0) {
+                html += '<div class="empty-state">✅ Nessuna criticità rilevata</div>';
+            } else {
+                critical.forEach(store => {
+                    html += `<div class="store-card critical">
+                        <div class="store-header">
+                            <span class="store-name">${store.storeName}</span>
+                            <span class="store-city">${store.city}</span>
+                        </div>
+                        <div class="metrics-grid">`;
+                    store.issues.forEach(issue => {
+                        html += `<div class="metric-item"><div class="metric-label">${issue.metric}</div><div class="metric-value" style="color:#EF4444">${issue.value}</div></div>`;
+                    });
+                    html += '</div></div>';
+                });
+            }
+            html += '</div></div></div>';
+
+            // Top performers
+            const topPerformers = analysis.operational?.topPerformers || [];
+            html += `
+                <div class="macro-section">
+                    <div class="macro-header marketing" onclick="toggleMacro(this)">
+                        <div class="macro-title">🏆 Top Performers <span class="macro-count">${topPerformers.length}</span></div>
+                        <span class="macro-toggle">▼</span>
+                    </div>
+                    <div class="macro-content">
+                        <div class="macro-body">
+            `;
+            if (topPerformers.length === 0) {
+                html += '<div class="empty-state">Nessun top performer identificato</div>';
+            } else {
+                topPerformers.forEach(store => {
+                    html += `<div class="store-card success">
+                        <div class="store-header">
+                            <span class="store-name">${store.storeName}</span>
+                            <span class="store-city">${store.city}</span>
+                        </div>
+                        <div class="metrics-grid">
+                            <div class="metric-item"><div class="metric-label">Rating</div><div class="metric-value">${formatDecimal(store.avgRating)}</div></div>
+                            <div class="metric-item"><div class="metric-label">Uptime</div><div class="metric-value">${formatDecimal(store.avgUptime)}%</div></div>
+                            <div class="metric-item"><div class="metric-label">WMI</div><div class="metric-value">${formatDecimal(store.avgWMI)}%</div></div>
+                            <div class="metric-item"><div class="metric-label">GMV</div><div class="metric-value">€${formatNumber(store.gmv)}</div></div>
+                        </div>
+                    </div>`;
+                });
+            }
+            html += '</div></div></div>';
+
+            document.getElementById('analysisContent').innerHTML = html;
+        }
+
+        function toggleMacro(header) {
+            const content = header.nextElementSibling;
+            const toggle = header.querySelector('.macro-toggle');
+            content.classList.toggle('expanded');
+            toggle.classList.toggle('expanded');
+        }
+
+        function sortStores(column) {
+            if (storesSortColumn === column) {
+                storesSortDirection = storesSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                storesSortColumn = column;
+                storesSortDirection = 'desc';
+            }
+            renderStores();
+        }
+
+        function renderStores() {
+            let stores = [...(currentData.stores || [])];
+
+            stores.sort((a, b) => {
+                let valA = a[storesSortColumn];
+                let valB = b[storesSortColumn];
+                if (typeof valA === 'string') return storesSortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                return storesSortDirection === 'asc' ? valA - valB : valB - valA;
+            });
+
+            const sortIcon = (col) => storesSortColumn === col ? (storesSortDirection === 'asc' ? ' sorted-asc' : ' sorted-desc') : '';
+
+            let html = `<table>
+                <thead><tr>
+                    <th>Rank</th>
+                    <th class="sortable${sortIcon('storeName')}" onclick="sortStores('storeName')">🏪 Store</th>
+                    <th class="sortable${sortIcon('gmv')}" onclick="sortStores('gmv')">💵 GMV</th>
+                    <th class="sortable${sortIcon('orders')}" onclick="sortStores('orders')">📦 Ordini</th>
+                    <th class="sortable${sortIcon('aov')}" onclick="sortStores('aov')">🛒 AOV</th>
+                    <th class="sortable${sortIcon('avgRating')}" onclick="sortStores('avgRating')">⭐ Rating</th>
+                    <th class="sortable${sortIcon('avgUptime')}" onclick="sortStores('avgUptime')">📶 Uptime</th>
+                    <th class="sortable${sortIcon('avgWMI')}" onclick="sortStores('avgWMI')">📊 WMI</th>
+                </tr></thead><tbody>`;
+
+            stores.forEach((s, i) => {
+                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+                const ratingClass = s.avgRating >= 4.5 ? 'success' : s.avgRating >= 4 ? 'warning' : 'danger';
+                const uptimeClass = s.avgUptime >= 95 ? 'success' : s.avgUptime >= 90 ? 'warning' : 'danger';
+                const wmiClass = s.avgWMI <= 2 ? 'success' : s.avgWMI <= 5 ? 'warning' : 'danger';
+
+                html += `<tr>
+                    <td><span class="medal">${medal}</span></td>
+                    <td><strong>${s.storeName}</strong><br><small style="color:#6B7280">${s.city}</small></td>
+                    <td>€${formatNumber(s.gmv)}</td>
+                    <td>${formatNumber(s.orders)}</td>
+                    <td>€${formatDecimal(s.aov)}</td>
+                    <td><span class="badge ${ratingClass}">${formatDecimal(s.avgRating)}</span></td>
+                    <td><span class="badge ${uptimeClass}">${formatDecimal(s.avgUptime)}%</span></td>
+                    <td><span class="badge ${wmiClass}">${formatDecimal(s.avgWMI)}%</span></td>
+                </tr>`;
+            });
+
+            html += '</tbody></table>';
+            document.getElementById('storesTable').innerHTML = html;
+
+            // Stores trend chart
+            renderStoresTrendChart();
+        }
+
+        function renderStoresTrendChart() {
+            const timeSeries = currentData.timeSeries || {};
+            const stores = currentData.stores || [];
+            const topStores = stores.slice(0, 5);
+
+            if (storesTrendChartInstance) storesTrendChartInstance.destroy();
+
+            const colors = ['#FF8000', '#FF5500', '#FFB366', '#CC6600', '#994C00'];
+            const datasets = topStores.map((store, i) => {
+                const storeData = timeSeries[store.originalStoreName] || [];
+                return {
+                    label: store.storeName,
+                    data: storeData.map(d => d.gmv),
+                    borderColor: colors[i % colors.length],
+                    fill: false,
+                    tension: 0.4
+                };
+            });
+
+            const allWeeksLabels = [...new Set(Object.values(timeSeries).flat().map(d => d.week))].sort();
+
+            const ctx = document.getElementById('storesTrendChart').getContext('2d');
+            storesTrendChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels: allWeeksLabels, datasets },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'top' }, datalabels: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { callback: v => `€${(v/1000).toFixed(0)}k` } } }
+                }
+            });
+        }
+
+        function renderOps() {
+            const ops = currentData.ops;
+            const byStore = ops.byStore || [];
+
+            let html = `
+                <div class="kpi-grid" style="margin-bottom: 24px;">
+                    <div class="kpi-card"><h3>📶 Uptime Medio</h3><div class="value">${formatDecimal(ops.avgUptime)}%</div></div>
+                    <div class="kpi-card"><h3>⭐ Rating Medio</h3><div class="value">${formatDecimal(ops.avgRating)}</div></div>
+                    <div class="kpi-card"><h3>🚚 Tempo Consegna</h3><div class="value">${formatDecimal(ops.avgDeliveryTime)} min</div></div>
+                    <div class="kpi-card"><h3>⏱️ Tempo Attesa</h3><div class="value">${formatDecimal(ops.avgWaitTime)} min</div></div>
+                    <div class="kpi-card"><h3>📊 WMI Medio</h3><div class="value">${formatDecimal(ops.avgWMI)}%</div></div>
+                </div>
+                <h3 style="margin-bottom: 16px; color: #1F2937;">Performance per Store</h3>
+                <div class="table-container">
+                    <table>
+                        <thead><tr>
+                            <th>Store</th>
+                            <th>Uptime</th>
+                            <th>Rating</th>
+                            <th>Tempo Consegna</th>
+                            <th>Tempo Attesa</th>
+                            <th>WMI</th>
+                            <th>Rifiuti</th>
+                        </tr></thead>
+                        <tbody>
+            `;
+
+            byStore.forEach(s => {
+                const uptimeClass = s.avgUptime >= 95 ? 'success' : s.avgUptime >= 90 ? 'warning' : 'danger';
+                const ratingClass = s.avgRating >= 4.5 ? 'success' : s.avgRating >= 4 ? 'warning' : 'danger';
+                const wmiClass = s.avgWMI <= 2 ? 'success' : s.avgWMI <= 5 ? 'warning' : 'danger';
+
+                html += `<tr>
+                    <td><strong>${s.storeName}</strong><br><small style="color:#6B7280">${s.city}</small></td>
+                    <td><span class="badge ${uptimeClass}">${formatDecimal(s.avgUptime)}%</span></td>
+                    <td><span class="badge ${ratingClass}">${formatDecimal(s.avgRating)}</span></td>
+                    <td>${formatDecimal(s.avgDeliveryTime)} min</td>
+                    <td>${formatDecimal(s.avgWaitTime)} min</td>
+                    <td><span class="badge ${wmiClass}">${formatDecimal(s.avgWMI)}%</span></td>
+                    <td>${formatDecimal(s.rejectionRate)}%</td>
+                </tr>`;
+            });
+
+            html += '</tbody></table></div>';
+            document.getElementById('opsContent').innerHTML = html;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍕 Fradiavolo Dashboard</title>
+    <script>
+        // Controllo autenticazione
+        if (sessionStorage.getItem('fradiavolo_logged') !== 'true') {
+            window.location.href = 'login.html';
+        }
+        function logout() {
+            sessionStorage.removeItem('fradiavolo_logged');
+            sessionStorage.removeItem('fradiavolo_user');
+            window.location.href = 'login.html';
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #FF6B6B 0%, #C92A2A 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .btn-logout {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .header h1 {
+            font-size: 4em;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+
+        .dashboard-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .dashboard-card {
+            background: white;
+            padding: 25px 35px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 6px;
+            background: linear-gradient(180deg, var(--card-color-1), var(--card-color-2));
+        }
+
+        .dashboard-card:hover {
+            transform: translateX(10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-icon {
+            font-size: 2.5em;
+            flex-shrink: 0;
+        }
+
+        .card-content {
+            flex: 1;
+        }
+
+        .card-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .card-description {
+            font-size: 0.95em;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .card-arrow {
+            font-size: 1.8em;
+            color: var(--card-color-1);
+            transition: transform 0.3s;
+            flex-shrink: 0;
+        }
+
+        .dashboard-card:hover .card-arrow {
+            transform: translateX(5px);
+        }
+
+        /* Glovo Card */
+        .glovo-card {
+            --card-color-1: #FFC244;
+            --card-color-2: #FF9500;
+        }
+
+        /* Deliveroo Card */
+        .deliveroo-card {
+            --card-color-1: #00CCBC;
+            --card-color-2: #008C84;
+        }
+
+        /* Fatturato Card */
+        .fatturato-card {
+            --card-color-1: #4CAF50;
+            --card-color-2: #2E7D32;
+        }
+
+        /* Combined Card */
+        .combined-card {
+            --card-color-1: #667eea;
+            --card-color-2: #764ba2;
+        }
+
+        /* Unified Card */
+        .unified-card {
+            --card-color-1: #9333ea;
+            --card-color-2: #6b21a8;
+        }
+
+        /* Recensioni Card */
+        .recensioni-card {
+            --card-color-1: #f59e0b;
+            --card-color-2: #d97706;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5em;
+            }
+
+            .header p {
+                font-size: 1em;
+            }
+
+            .dashboard-card {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="btn-logout" onclick="logout()">Logout</button>
+            <h1>🍕 Fradiavolo Dashboard</h1>
+            <p>Scegli la dashboard da visualizzare</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- 1. Fatturato Dashboard -->
+            <a href="fatturato.html" class="dashboard-card fatturato-card">
+                <div class="card-icon">💰</div>
+                <div class="card-content">
+                    <div class="card-title">Fatturato</div>
+                    <div class="card-description">Visualizza il fatturato complessivo per store, città e periodi. Analisi complete dei ricavi.</div>
+                </div>
+                <div class="card-arrow">→</div>
+            </a>
+
+            <!-- 2. Recensioni Dashboard -->
+            <a href="recensioni.html" class="dashboard-card recensioni-card">
+                <div class="card-icon">🗣</div>
+                <div class="card-content">
+                    <div class="card-title">Recensioni</div>
+                    <div class="card-description">Visione completa per topic, per store e città. Sezione dedicata alla gara recensioni google da week 44.</div>
+                </div>
+                <div class="card-arrow">→</div>
+            </a>
+
+            <!-- 3. Glovo Dashboard -->
+            <a href="glovo.html" class="dashboard-card glovo-card">
+                <div class="card-icon">🟡</div>
+                <div class="card-content">
+                    <div class="card-title">Glovo</div>
+                    <div class="card-description">Analizza le performance di marketing e operations su Glovo. GMV, ordini, uptime, rating e molto altro.</div>
+                </div>
+                <div class="card-arrow">→</div>
+            </a>
+
+            <!-- 4. Deliveroo Dashboard -->
+            <a href="deliveroo.html" class="dashboard-card deliveroo-card">
+                <div class="card-icon">🔷</div>
+                <div class="card-content">
+                    <div class="card-title">Deliveroo</div>
+                    <div class="card-description">Monitora le metriche Deliveroo: ROAS, nuovi clienti, tempi di preparazione, rating e WMI.</div>
+                </div>
+                <div class="card-arrow">→</div>
+            </a>
+
+            <!-- 5. Combined Dashboard -->
+            <a href="combined.html" class="dashboard-card combined-card">
+                <div class="card-icon">📊</div>
+                <div class="card-content">
+                    <div class="card-title">Delivery Multi-piattaforma</div>
+                    <div class="card-description">Dashboard unificata Glovo + Deliveroo. Confronta GMV, ordini, rating, ROAS e metriche operative.</div>
+                </div>
+                <div class="card-arrow">→</div>
+            </a>
+
+            <!-- 6. Unified Dashboard -->
+            <a href="dashboard-unified.html" class="dashboard-card unified-card">
+                <div class="card-icon">🎯</div>
+                <div class="card-content">
+                    <div class="card-title">Dashboard Unificata Completa</div>
+                    <div class="card-description">Vista completa: Glovo + Deliveroo + Fatturato. Tutti i dati in un'unica dashboard con filtri avanzati.</div>
+                </div>
+                <div class="card-arrow">→</div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

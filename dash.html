@@ -1,0 +1,3040 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fradiavolo - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet CSS e JS per la mappa -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet MarkerCluster -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #F8F9FA;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 260px;
+            background: #FFFFFF;
+            border-right: 1px solid #E5E7EB;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .logo {
+            padding: 24px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1F2937;
+        }
+
+        .nav-section {
+            padding: 20px 12px;
+            flex: 1;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #9CA3AF;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0 12px;
+            margin-bottom: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: #6B7280;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: #FFF7ED;
+            color: #EA580C;
+        }
+
+        .nav-item.active {
+            background: #FFF7ED;
+            color: #EA580C;
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 24px;
+            background: #EA580C;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-badge {
+            background: #EA580C;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: auto;
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: #E5E7EB;
+            margin: 16px 12px;
+        }
+
+        /* Tools Section */
+        .tools-section {
+            padding: 0 12px 20px;
+        }
+
+        .tool-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            color: #6B7280;
+        }
+
+        .tool-item:hover {
+            background: #F3F4F6;
+        }
+
+        .tool-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .tool-icon.glovo { background: #FFC244; }
+        .tool-icon.deliveroo { background: #00CCBC; }
+        .tool-icon.fatturato { background: #667EEA; }
+
+        /* Upgrade Card */
+        .upgrade-card {
+            margin: 12px;
+            padding: 20px;
+            background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+            border-radius: 12px;
+            border: 1px solid #FED7AA;
+        }
+
+        .upgrade-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .upgrade-text {
+            font-size: 12px;
+            color: #6B7280;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .upgrade-btn {
+            width: 100%;
+            padding: 10px;
+            background: #EA580C;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upgrade-btn:hover {
+            background: #C2410C;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main {
+            flex: 1;
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #E5E7EB;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: #F3F4F6;
+            border-radius: 10px;
+            padding: 10px 16px;
+            gap: 10px;
+            width: 360px;
+        }
+
+        .search-box input {
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            color: #1F2937;
+            width: 100%;
+            outline: none;
+        }
+
+        .search-box input::placeholder {
+            color: #9CA3AF;
+        }
+
+        .search-icon {
+            color: #9CA3AF;
+        }
+
+        .kbd {
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 11px;
+            color: #9CA3AF;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #6B7280;
+        }
+
+        .header-icon:hover {
+            background: #F3F4F6;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Content Area */
+        .content {
+            padding: 32px;
+        }
+
+        .welcome-section {
+            margin-bottom: 32px;
+        }
+
+        .welcome-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .welcome-text h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 4px;
+        }
+
+        .welcome-text p {
+            font-size: 14px;
+            color: #6B7280;
+        }
+
+        .welcome-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+        }
+
+        .btn-outline {
+            background: white;
+            border: 1px solid #E5E7EB;
+            color: #374151;
+        }
+
+        .btn-outline:hover {
+            background: #F9FAFB;
+        }
+
+        .btn-primary {
+            background: #EA580C;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #C2410C;
+        }
+
+        /* Date Picker */
+        .date-picker-wrapper {
+            position: relative;
+        }
+
+        .date-picker-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .date-picker-btn:hover {
+            border-color: #EA580C;
+            background: #FFF7ED;
+        }
+
+        .date-picker-icon {
+            font-size: 16px;
+        }
+
+        .date-picker-text {
+            font-weight: 500;
+        }
+
+        .date-picker-arrow {
+            font-size: 10px;
+            color: #9CA3AF;
+            transition: transform 0.2s;
+        }
+
+        .date-picker-btn.open .date-picker-arrow {
+            transform: rotate(180deg);
+        }
+
+        .date-picker-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            padding: 16px;
+            min-width: 320px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .date-picker-dropdown.open {
+            display: block;
+        }
+
+        .date-picker-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .date-picker-granularity {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .granularity-btn {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #E5E7EB;
+            background: white;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #6B7280;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .granularity-btn:hover {
+            border-color: #EA580C;
+            color: #EA580C;
+        }
+
+        .granularity-btn.active {
+            background: #EA580C;
+            border-color: #EA580C;
+            color: white;
+        }
+
+        .date-picker-range {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .date-picker-field {
+            flex: 1;
+        }
+
+        .date-picker-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #6B7280;
+            margin-bottom: 6px;
+        }
+
+        .date-picker-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #374151;
+            background: white;
+            cursor: pointer;
+        }
+
+        .date-picker-input:focus {
+            outline: none;
+            border-color: #EA580C;
+        }
+
+        .date-picker-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .date-picker-apply {
+            padding: 10px 24px;
+            background: #EA580C;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .date-picker-apply:hover {
+            background: #C2410C;
+        }
+
+        /* Fullscreen Modal */
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .fullscreen-overlay.open {
+            display: flex;
+        }
+
+        .fullscreen-content {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 1400px;
+            height: 80vh;
+            padding: 32px;
+            position: relative;
+        }
+
+        .fullscreen-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .fullscreen-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .fullscreen-close {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: #F3F4F6;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .fullscreen-close:hover {
+            background: #E5E7EB;
+        }
+
+        .fullscreen-chart {
+            height: calc(100% - 80px);
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .chart-action-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #F3F4F6;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .chart-action-btn:hover {
+            background: #E5E7EB;
+        }
+
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+            transition: all 0.2s;
+        }
+
+        .kpi-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .kpi-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .kpi-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .kpi-icon.orange { background: #FFF7ED; }
+        .kpi-icon.blue { background: #EFF6FF; }
+        .kpi-icon.green { background: #F0FDF4; }
+        .kpi-icon.purple { background: #FAF5FF; }
+
+        .kpi-info-btn {
+            color: #9CA3AF;
+            cursor: pointer;
+        }
+
+        .kpi-label {
+            font-size: 13px;
+            color: #6B7280;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 8px;
+        }
+
+        .kpi-change {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+
+        .kpi-change.positive {
+            color: #16A34A;
+        }
+
+        .kpi-change.negative {
+            color: #DC2626;
+        }
+
+        .kpi-change-icon {
+            font-size: 10px;
+        }
+
+        .kpi-period {
+            color: #9CA3AF;
+            font-size: 12px;
+        }
+
+        .kpi-changes-row {
+            display: flex;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .kpi-change-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+        }
+
+        .kpi-change-item.positive {
+            color: #16A34A;
+        }
+
+        .kpi-change-item.negative {
+            color: #DC2626;
+        }
+
+        .kpi-change-label {
+            color: #9CA3AF;
+            font-size: 11px;
+        }
+
+        /* Charts Section */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .chart-title-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 4px;
+        }
+
+        .chart-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1F2937;
+        }
+
+        .chart-value-change {
+            font-size: 13px;
+            color: #16A34A;
+            margin-left: 8px;
+        }
+
+        .chart-toggle {
+            display: flex;
+            background: #F3F4F6;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 500;
+            color: #6B7280;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: #1F2937;
+            color: white;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #6B7280;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.orange { background: #EA580C; }
+        .legend-dot.light-orange { background: #FDBA74; }
+        .legend-dot.gray { background: #D1D5DB; }
+
+        .chart-container {
+            height: 280px;
+            position: relative;
+        }
+
+        /* Sales Overview (Donut) */
+        .donut-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .donut-chart {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin-bottom: 24px;
+        }
+
+        .donut-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .donut-center .percentage {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1F2937;
+        }
+
+        .donut-center .label {
+            font-size: 12px;
+            color: #6B7280;
+        }
+
+        .donut-stats {
+            width: 100%;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #6B7280;
+        }
+
+        .stat-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .stat-target {
+            font-size: 12px;
+            color: #9CA3AF;
+        }
+
+        /* Table Section */
+        .table-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .table-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .table-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .table-search {
+            display: flex;
+            align-items: center;
+            background: #F3F4F6;
+            border-radius: 8px;
+            padding: 8px 12px;
+            gap: 8px;
+        }
+
+        .table-search input {
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            outline: none;
+            width: 160px;
+        }
+
+        .table-filter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #374151;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        td {
+            padding: 16px;
+            font-size: 14px;
+            color: #1F2937;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        tr:hover {
+            background: #F9FAFB;
+        }
+
+        .store-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .store-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge.positive {
+            background: #DCFCE7;
+            color: #16A34A;
+        }
+
+        .badge.negative {
+            background: #FEE2E2;
+            color: #DC2626;
+        }
+
+        .badge.warning {
+            background: #FEF3C7;
+            color: #D97706;
+        }
+
+        .badge.neutral {
+            background: #F3F4F6;
+            color: #6B7280;
+        }
+
+        /* Map Section */
+        .map-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+            margin-bottom: 32px;
+        }
+
+        .map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .map-title-section h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 4px;
+        }
+
+        .map-title-section p {
+            font-size: 13px;
+            color: #6B7280;
+        }
+
+        .map-legend {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .legend-scale {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-gradient {
+            width: 120px;
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(to right, #FED7AA, #FB923C, #EA580C, #C2410C, #7C2D12);
+        }
+
+        .legend-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #6B7280;
+            margin-top: 4px;
+        }
+
+        #italyMap {
+            height: 500px;
+            border-radius: 12px;
+            z-index: 1;
+        }
+
+        .map-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .map-stat {
+            background: #F9FAFB;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .map-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1F2937;
+        }
+
+        .map-stat-label {
+            font-size: 12px;
+            color: #6B7280;
+            margin-top: 4px;
+        }
+
+        /* Custom map markers */
+        .custom-marker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 11px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .custom-marker:hover {
+            transform: scale(1.1);
+        }
+
+        .city-cluster {
+            background: linear-gradient(135deg, #EA580C, #C2410C);
+            width: 50px;
+            height: 50px;
+            font-size: 14px;
+        }
+
+        /* Leaflet popup customization */
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .leaflet-popup-content {
+            margin: 0;
+            min-width: 220px;
+        }
+
+        .popup-header {
+            background: linear-gradient(135deg, #EA580C, #C2410C);
+            color: white;
+            padding: 12px 16px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .popup-body {
+            padding: 16px;
+        }
+
+        .popup-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        .popup-stat:last-child {
+            border-bottom: none;
+        }
+
+        .popup-stat-label {
+            font-size: 12px;
+            color: #6B7280;
+        }
+
+        .popup-stat-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .popup-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .popup-badge.positive {
+            background: #DCFCE7;
+            color: #16A34A;
+        }
+
+        .popup-badge.negative {
+            background: #FEE2E2;
+            color: #DC2626;
+        }
+
+        /* MarkerCluster customization */
+        .marker-cluster-small,
+        .marker-cluster-medium,
+        .marker-cluster-large {
+            background: rgba(234, 88, 12, 0.4);
+        }
+
+        .marker-cluster-small div,
+        .marker-cluster-medium div,
+        .marker-cluster-large div {
+            background: linear-gradient(135deg, #EA580C, #C2410C);
+            color: white;
+            font-weight: 700;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            color: #6B7280;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #E5E7EB;
+            border-top-color: #EA580C;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .main {
+                margin-left: 0;
+            }
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            .search-box {
+                display: none;
+            }
+        }
+
+        /* ===== HEATMAP STYLES ===== */
+        .heatmaps-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        .heatmap-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #E5E7EB;
+            overflow: hidden;
+        }
+
+        .heatmap-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .heatmap-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1F2937;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .heatmap-title-icon {
+            font-size: 20px;
+        }
+
+        .heatmap-legend {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            font-size: 11px;
+            color: #6B7280;
+        }
+
+        .heatmap-legend-scale {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .heatmap-legend-gradient {
+            width: 100px;
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #EF4444, #FEE2E2, #FFFFFF, #DCFCE7, #22C55E);
+        }
+
+        .heatmap-container {
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .heatmap-table {
+            border-collapse: collapse;
+            font-size: 11px;
+            min-width: 100%;
+        }
+
+        .heatmap-table th {
+            padding: 8px 6px;
+            text-align: center;
+            font-weight: 600;
+            color: #6B7280;
+            background: #F9FAFB;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 2px solid #E5E7EB;
+            white-space: nowrap;
+        }
+
+        .heatmap-table th:first-child {
+            text-align: left;
+            position: sticky;
+            left: 0;
+            z-index: 20;
+            background: #F9FAFB;
+            min-width: 140px;
+        }
+
+        .heatmap-table td {
+            padding: 6px;
+            text-align: center;
+            border: 1px solid #F3F4F6;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .heatmap-table td:first-child {
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            position: sticky;
+            left: 0;
+            background: white;
+            z-index: 5;
+            border-right: 2px solid #E5E7EB;
+        }
+
+        .heatmap-table tr:hover td:first-child {
+            background: #FFF7ED;
+        }
+
+        .heatmap-cell {
+            min-width: 50px;
+            padding: 6px 4px;
+            border-radius: 4px;
+            transition: transform 0.1s;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 100;
+            position: relative;
+        }
+
+        .heatmap-cell.positive-strong { background: #22C55E; color: white; }
+        .heatmap-cell.positive-medium { background: #4ADE80; color: white; }
+        .heatmap-cell.positive-light { background: #DCFCE7; color: #166534; }
+        .heatmap-cell.neutral { background: #F9FAFB; color: #6B7280; }
+        .heatmap-cell.negative-light { background: #FEE2E2; color: #991B1B; }
+        .heatmap-cell.negative-medium { background: #F87171; color: white; }
+        .heatmap-cell.negative-strong { background: #EF4444; color: white; }
+        .heatmap-cell.no-data { background: #F3F4F6; color: #9CA3AF; }
+
+        @media (max-width: 1400px) {
+            .heatmaps-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== HAMBURGER MENU ===== */
+        .hamburger-btn {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .hamburger-btn:hover {
+            background: #F3F4F6;
+        }
+
+        .hamburger-btn span {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: #374151;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+
+        .sidebar-overlay.open {
+            display: block;
+        }
+
+        /* ===== RESPONSIVE - TABLET (iPad) ===== */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 220px;
+            }
+
+            .main {
+                margin-left: 220px;
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+
+            .content {
+                padding: 24px;
+            }
+
+            .header {
+                padding: 16px 24px;
+            }
+
+            .search-box {
+                width: 280px;
+            }
+
+            .welcome-row {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .welcome-actions {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+        }
+
+        /* ===== RESPONSIVE - MOBILE ===== */
+        @media (max-width: 768px) {
+            .hamburger-btn {
+                display: flex;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 100;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .header {
+                padding: 12px 16px;
+            }
+
+            .header-left {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .page-title {
+                font-size: 16px;
+            }
+
+            .search-box {
+                display: none;
+            }
+
+            .kbd {
+                display: none;
+            }
+
+            .content {
+                padding: 16px;
+            }
+
+            .kpi-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .kpi-card {
+                padding: 16px;
+            }
+
+            .kpi-value {
+                font-size: 24px;
+            }
+
+            .charts-row {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .chart-card {
+                padding: 16px;
+            }
+
+            .chart-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+
+            .chart-container {
+                height: 220px;
+            }
+
+            .chart-value {
+                font-size: 24px;
+            }
+
+            .welcome-text h1 {
+                font-size: 20px;
+            }
+
+            .welcome-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .date-picker-dropdown {
+                min-width: 100%;
+                left: 0;
+                right: 0;
+            }
+
+            .date-picker-range {
+                flex-direction: column;
+            }
+
+            .fullscreen-overlay {
+                padding: 16px;
+            }
+
+            .fullscreen-content {
+                padding: 16px;
+                height: 90vh;
+            }
+
+            /* Table responsive */
+            .table-card {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 600px;
+            }
+
+            /* Map responsive */
+            #storeMap {
+                height: 300px !important;
+            }
+
+            .stores-section {
+                grid-template-columns: 1fr;
+            }
+
+            .donut-chart {
+                width: 160px;
+                height: 160px;
+            }
+
+            .donut-center .percentage {
+                font-size: 28px;
+            }
+
+            .heatmaps-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== RESPONSIVE - SMALL MOBILE ===== */
+        @media (max-width: 480px) {
+            .logo-text {
+                font-size: 16px;
+            }
+
+            .nav-item {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+
+            .kpi-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .kpi-value {
+                font-size: 20px;
+            }
+
+            .avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+
+            .btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .chart-toggle {
+                flex-wrap: wrap;
+            }
+
+            .toggle-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">🍕</div>
+            <span class="logo-text">Fradiavolo</span>
+        </div>
+
+        <nav class="nav-section">
+            <div class="nav-label">Menu</div>
+            <a href="dash.html" class="nav-item active">
+                <span class="nav-icon">📊</span>
+                Dashboard
+            </a>
+            <a href="stores.html" class="nav-item">
+                <span class="nav-icon">🏪</span>
+                Stores
+            </a>
+            <a href="recensioni.html" class="nav-item">
+                <span class="nav-icon">⭐</span>
+                Recensioni
+            </a>
+            <a href="glovo.html" class="nav-item">
+                <span class="nav-icon">🟡</span>
+                Glovo
+            </a>
+            <a href="deliveroo.html" class="nav-item">
+                <span class="nav-icon">🔵</span>
+                Deliveroo
+            </a>
+            <a href="justeat.html" class="nav-item">
+                <span class="nav-icon">🟠</span>
+                Just Eat
+            </a>
+            <a href="combined.html" class="nav-item">
+                <span class="nav-icon">📦</span>
+                Delivery Multipiattaforma
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="hamburger-btn" onclick="toggleSidebar()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <span class="page-title">Overview</span>
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Cerca ordini, stores, clienti...">
+                    <span class="kbd">⌘ K</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="avatar">AP</div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Welcome Section -->
+            <div class="welcome-section">
+                <div class="welcome-row">
+                    <div class="welcome-text">
+                        <h1>Bentornato!</h1>
+                        <p id="currentDate">Caricamento...</p>
+                    </div>
+                    <div class="welcome-actions">
+                        <div class="date-picker-wrapper">
+                            <button class="date-picker-btn" id="datePickerBtn" onclick="toggleDatePicker()">
+                                <span class="date-picker-icon">📅</span>
+                                <span class="date-picker-text" id="datePickerText">01 Gen 2025 - Oggi</span>
+                                <span class="date-picker-arrow">▼</span>
+                            </button>
+                            <div class="date-picker-dropdown" id="datePickerDropdown">
+                                <div class="date-picker-header">
+                                    <span>Seleziona periodo</span>
+                                </div>
+                                <div class="date-picker-granularity">
+                                    <button class="granularity-btn active" data-granularity="daily" onclick="setGranularity('daily')">Giorni</button>
+                                    <button class="granularity-btn" data-granularity="weekly" onclick="setGranularity('weekly')">Settimane</button>
+                                    <button class="granularity-btn" data-granularity="monthly" onclick="setGranularity('monthly')">Mesi</button>
+                                </div>
+                                <div class="date-picker-range">
+                                    <div class="date-picker-field">
+                                        <label>Da</label>
+                                        <input type="date" id="dateFrom" class="date-picker-input">
+                                        <select id="weekFrom" class="date-picker-input" style="display: none;"></select>
+                                        <select id="monthFrom" class="date-picker-input" style="display: none;"></select>
+                                    </div>
+                                    <div class="date-picker-field">
+                                        <label>A</label>
+                                        <input type="date" id="dateTo" class="date-picker-input">
+                                        <select id="weekTo" class="date-picker-input" style="display: none;"></select>
+                                        <select id="monthTo" class="date-picker-input" style="display: none;"></select>
+                                    </div>
+                                </div>
+                                <div class="date-picker-actions">
+                                    <button class="date-picker-apply" onclick="applyDateFilter()">Applica</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="loadData()">
+                            ↻ Aggiorna
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="kpi-grid" id="kpiGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Caricamento dati...
+                </div>
+            </div>
+
+            <!-- Map Section -->
+            <div class="map-section">
+                <div class="map-header">
+                    <div class="map-title-section">
+                        <h3>Mappa Fatturato Italia</h3>
+                        <p>Distribuzione fatturato per città e punto vendita. Clicca sui marker per i dettagli.</p>
+                    </div>
+                    <div class="map-legend">
+                        <div class="legend-scale">
+                            <span style="font-size: 12px; color: #6B7280;">Fatturato:</span>
+                            <div>
+                                <div class="legend-gradient"></div>
+                                <div class="legend-labels">
+                                    <span>Basso</span>
+                                    <span>Alto</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="italyMap"></div>
+                <div class="map-stats">
+                    <div class="map-stat">
+                        <div class="map-stat-value" id="mapTotalCities">-</div>
+                        <div class="map-stat-label">Città</div>
+                    </div>
+                    <div class="map-stat">
+                        <div class="map-stat-value" id="mapTotalStores">-</div>
+                        <div class="map-stat-label">Punti Vendita</div>
+                    </div>
+                    <div class="map-stat">
+                        <div class="map-stat-value" id="mapTotalRevenue">-</div>
+                        <div class="map-stat-label">Fatturato Totale</div>
+                    </div>
+                    <div class="map-stat">
+                        <div class="map-stat-value" id="mapTopCity">-</div>
+                        <div class="map-stat-label">Top Città</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-row">
+                <!-- Revenue Insights -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title-section">
+                            <h3>Revenue Insights</h3>
+                            <div>
+                                <span class="chart-value" id="totalRevenue">€0</span>
+                                <span class="chart-value-change" id="revenueChange">+0%</span>
+                            </div>
+                        </div>
+                        <div class="chart-actions">
+                            <div class="chart-toggle" id="chartToggle">
+                                <button class="toggle-btn" data-period="daily" onclick="setChartPeriod('daily')">Giorno</button>
+                                <button class="toggle-btn" data-period="weekly" onclick="setChartPeriod('weekly')">Settimana</button>
+                                <button class="toggle-btn" data-period="monthly" onclick="setChartPeriod('monthly')">Mese</button>
+                            </div>
+                            <button class="chart-action-btn" onclick="openFullscreenChart()" title="Visualizza a schermo intero">⛶</button>
+                        </div>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <span class="legend-dot orange"></span>
+                            Fatturato
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot light-orange"></span>
+                            Budget
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot gray"></span>
+                            Anno Prec.
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Sales Overview (Donut) -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title-section">
+                            <h3>Mix Canali</h3>
+                        </div>
+                        <span style="color: #9CA3AF; cursor: pointer;">•••</span>
+                    </div>
+                    <div class="donut-container">
+                        <div class="donut-chart">
+                            <canvas id="donutChart"></canvas>
+                            <div class="donut-center">
+                                <div class="percentage" id="storePercentage">0%</div>
+                                <div class="label">Store</div>
+                            </div>
+                        </div>
+                        <div class="donut-stats">
+                            <div class="stat-row">
+                                <span class="stat-label">Fatturato Netto</span>
+                                <span class="stat-value" id="statNetto">€0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Target Budget</span>
+                                <span class="stat-target" id="statBudget">€0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stores Table -->
+            <div class="table-card">
+                <div class="table-header">
+                    <h3 class="table-title">Ranking Stores</h3>
+                    <div class="table-controls">
+                        <div class="table-search">
+                            <span>🔍</span>
+                            <input type="text" placeholder="Cerca store..." id="storeSearch" onkeyup="filterStores()">
+                        </div>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Rank</th>
+                            <th>Store</th>
+                            <th>Città</th>
+                            <th>Fatturato Netto</th>
+                            <th>vs Budget</th>
+                            <th>vs Anno Prec.</th>
+                            <th>Coperti</th>
+                            <th>Scontrino Medio</th>
+                        </tr>
+                    </thead>
+                    <tbody id="storesTableBody">
+                        <tr>
+                            <td colspan="9" class="loading">
+                                <div class="spinner"></div>
+                                Caricamento stores...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Heatmaps Section -->
+            <div class="heatmaps-section">
+                <!-- Heatmap Delta Budget -->
+                <div class="heatmap-card">
+                    <div class="heatmap-header">
+                        <h3 class="heatmap-title">
+                            <span class="heatmap-title-icon">📊</span>
+                            Delta Budget Settimanale
+                        </h3>
+                        <div class="heatmap-legend">
+                            <span>-20%</span>
+                            <div class="heatmap-legend-gradient"></div>
+                            <span>+20%</span>
+                        </div>
+                    </div>
+                    <div class="heatmap-container" id="heatmapBudgetContainer">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            Caricamento heatmap...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Heatmap Delta Anno -->
+                <div class="heatmap-card">
+                    <div class="heatmap-header">
+                        <h3 class="heatmap-title">
+                            <span class="heatmap-title-icon">📈</span>
+                            Delta Anno Precedente Settimanale
+                        </h3>
+                        <div class="heatmap-legend">
+                            <span>-20%</span>
+                            <div class="heatmap-legend-gradient"></div>
+                            <span>+20%</span>
+                        </div>
+                    </div>
+                    <div class="heatmap-container" id="heatmapAnnoContainer">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            Caricamento heatmap...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Fullscreen Chart Modal -->
+    <div class="fullscreen-overlay" id="fullscreenOverlay" onclick="closeFullscreenChart(event)">
+        <div class="fullscreen-content" onclick="event.stopPropagation()">
+            <div class="fullscreen-header">
+                <h2 class="fullscreen-title">Revenue Insights</h2>
+                <button class="fullscreen-close" onclick="closeFullscreenChart()">✕</button>
+            </div>
+            <div class="fullscreen-chart">
+                <canvas id="fullscreenRevenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile sidebar toggle
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('open');
+        }
+
+        const API_URL = '/api/fatturato';
+        let currentData = null;
+        let revenueChartInstance = null;
+        let fullscreenChartInstance = null;
+        let donutChartInstance = null;
+        let chartPeriod = 'daily';
+        let currentGranularity = 'daily';
+        let availableWeeks = [];
+        let availableMonths = [];
+        let italyMap = null;
+        let markersLayer = null;
+
+        // Coordinate città italiane per la mappa
+        const CITY_COORDS = {
+            'TORINO': { lat: 45.0703, lng: 7.6869 },
+            'MILANO': { lat: 45.4642, lng: 9.1900 },
+            'GENOVA': { lat: 44.4056, lng: 8.9463 },
+            'BOLOGNA': { lat: 44.4949, lng: 11.3426 },
+            'ROMA': { lat: 41.9028, lng: 12.4964 },
+            'BRESCIA': { lat: 45.5416, lng: 10.2118 },
+            'MONZA': { lat: 45.5845, lng: 9.2744 },
+            'VARESE': { lat: 45.8206, lng: 8.8257 },
+            'NOVARA': { lat: 45.4469, lng: 8.6220 },
+            'PARMA': { lat: 44.8015, lng: 10.3279 },
+            'MODENA': { lat: 44.6471, lng: 10.9252 },
+            'ALESSANDRIA': { lat: 44.9125, lng: 8.6152 },
+            'ASTI': { lat: 44.9003, lng: 8.2067 },
+            'ARESE': { lat: 45.5525, lng: 9.0783 },
+            'RIVOLI': { lat: 45.0698, lng: 7.5178 },
+            'RIMINI': { lat: 44.0678, lng: 12.5695 },
+            'CASALECCHIO DI RENO': { lat: 44.4715, lng: 11.2857 },
+            'CAGLIARI': { lat: 39.2238, lng: 9.1217 }
+        };
+
+        // Offset per store nella stessa città (per evitare sovrapposizioni)
+        const STORE_OFFSETS = {
+            'TORINO': [
+                { name: 'CARLINA', offset: { lat: 0, lng: 0 } },
+                { name: 'GM', offset: { lat: 0.008, lng: 0.008 } },
+                { name: 'IV MARZO', offset: { lat: -0.006, lng: 0.01 } },
+                { name: 'VANCHIGLIA', offset: { lat: 0.01, lng: -0.006 } },
+                { name: 'SAN SALVARIO', offset: { lat: -0.008, lng: -0.008 } }
+            ],
+            'MILANO': [
+                { name: 'BICOCCA', offset: { lat: 0.02, lng: 0 } },
+                { name: 'CITYLIFE', offset: { lat: 0, lng: -0.02 } },
+                { name: 'ISOLA', offset: { lat: 0.015, lng: 0.01 } },
+                { name: 'PORTA VENEZIA', offset: { lat: -0.01, lng: 0.015 } },
+                { name: 'PREMUDA', offset: { lat: -0.015, lng: -0.01 } },
+                { name: 'SEMPIONE', offset: { lat: 0.01, lng: -0.015 } }
+            ],
+            'GENOVA': [
+                { name: 'CASTELLO', offset: { lat: 0, lng: 0 } },
+                { name: 'MARE', offset: { lat: 0.01, lng: 0.01 } }
+            ],
+            'ROMA': [
+                { name: 'OSTIENSE', offset: { lat: -0.01, lng: 0 } },
+                { name: 'PARIOLI', offset: { lat: 0.015, lng: 0.01 } },
+                { name: 'TRASTEVERE', offset: { lat: 0, lng: -0.015 } }
+            ],
+            'BRESCIA': [
+                { name: 'CENTRO', offset: { lat: 0, lng: 0 } },
+                { name: 'ELNOS', offset: { lat: 0.015, lng: 0.01 } }
+            ],
+            'BOLOGNA': [
+                { name: 'S.STEFANO', offset: { lat: 0, lng: 0 } }
+            ]
+        };
+
+        // Date filter state
+        let filterState = {
+            granularity: 'daily',
+            dateFrom: '2025-01-01',
+            dateTo: new Date().toISOString().split('T')[0],
+            weekFrom: 1,
+            weekTo: 52,
+            monthFrom: '2025-01',
+            monthTo: new Date().toISOString().slice(0, 7)
+        };
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCurrentDate();
+            initDatePicker();
+            initMap();
+            loadData();
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                const wrapper = document.querySelector('.date-picker-wrapper');
+                if (!wrapper.contains(e.target)) {
+                    closeDatePicker();
+                }
+            });
+        });
+
+        // ===== MAP FUNCTIONS =====
+        function initMap() {
+            // Confini Italia per limitare il dezoom
+            const italyBounds = L.latLngBounds(
+                L.latLng(35.5, 6.5),   // Sud-Ovest (Sicilia/Sardegna)
+                L.latLng(47.1, 18.5)   // Nord-Est (Alto Adige)
+            );
+
+            // Inizializza la mappa centrata sull'Italia
+            italyMap = L.map('italyMap', {
+                zoomControl: true,
+                scrollWheelZoom: true,
+                minZoom: 5,
+                maxZoom: 18,
+                maxBounds: italyBounds,
+                maxBoundsViscosity: 1.0
+            }).setView([42.5, 12.0], 5.5);
+
+            // Tile layer con stile chiaro/moderno
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 19
+            }).addTo(italyMap);
+
+            // Layer per i marker con clustering
+            markersLayer = L.markerClusterGroup({
+                maxClusterRadius: 50,
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                iconCreateFunction: function(cluster) {
+                    const childMarkers = cluster.getAllChildMarkers();
+                    let totalRevenue = 0;
+                    childMarkers.forEach(m => {
+                        totalRevenue += m.options.storeData?.netto || 0;
+                    });
+                    const size = childMarkers.length > 5 ? 50 : (childMarkers.length > 2 ? 40 : 35);
+                    return L.divIcon({
+                        html: `<div style="
+                            background: linear-gradient(135deg, #EA580C, #C2410C);
+                            width: ${size}px;
+                            height: ${size}px;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: white;
+                            font-weight: 700;
+                            font-size: ${size > 40 ? 14 : 12}px;
+                            border: 3px solid white;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                        ">${childMarkers.length}</div>`,
+                        className: 'custom-cluster-icon',
+                        iconSize: [size, size]
+                    });
+                }
+            });
+
+            italyMap.addLayer(markersLayer);
+        }
+
+        function updateMap() {
+            if (!currentData || !currentData.storesRanking) return;
+
+            markersLayer.clearLayers();
+
+            const stores = currentData.storesRanking;
+            if (stores.length === 0) return;
+
+            // Trova min e max fatturato per la scala colori
+            const revenues = stores.map(s => s.netto);
+            const minRevenue = Math.min(...revenues);
+            const maxRevenue = Math.max(...revenues);
+
+            // Raggruppa per città
+            const citiesData = {};
+            stores.forEach(store => {
+                const city = store.city.toUpperCase();
+                if (!citiesData[city]) {
+                    citiesData[city] = { stores: [], totalRevenue: 0 };
+                }
+                citiesData[city].stores.push(store);
+                citiesData[city].totalRevenue += store.netto;
+            });
+
+            // Aggiungi marker per ogni store
+            stores.forEach(store => {
+                const city = store.city.toUpperCase();
+                const coords = getCoordsForStore(store.name, city);
+
+                if (coords) {
+                    const color = getColorForRevenue(store.netto, minRevenue, maxRevenue);
+                    const size = getSizeForRevenue(store.netto, minRevenue, maxRevenue);
+
+                    const marker = L.marker([coords.lat, coords.lng], {
+                        icon: L.divIcon({
+                            html: `<div style="
+                                background: ${color};
+                                width: ${size}px;
+                                height: ${size}px;
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: white;
+                                font-weight: 700;
+                                font-size: 10px;
+                                border: 3px solid white;
+                                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                                cursor: pointer;
+                            "></div>`,
+                            className: 'store-marker',
+                            iconSize: [size, size],
+                            iconAnchor: [size/2, size/2]
+                        }),
+                        storeData: store
+                    });
+
+                    const deltaBudget = parseFloat(store.deltaBudgetPct);
+                    const deltaAnno = parseFloat(store.deltaAnnoPct);
+
+                    marker.bindPopup(`
+                        <div class="popup-header">${store.name}</div>
+                        <div class="popup-body">
+                            <div class="popup-stat">
+                                <span class="popup-stat-label">Città</span>
+                                <span class="popup-stat-value">${store.city}</span>
+                            </div>
+                            <div class="popup-stat">
+                                <span class="popup-stat-label">Fatturato</span>
+                                <span class="popup-stat-value">€${formatNumber(store.netto)}</span>
+                            </div>
+                            <div class="popup-stat">
+                                <span class="popup-stat-label">vs Budget</span>
+                                <span class="popup-badge ${deltaBudget >= 0 ? 'positive' : 'negative'}">
+                                    ${deltaBudget > 0 ? '+' : ''}${store.deltaBudgetPct}%
+                                </span>
+                            </div>
+                            <div class="popup-stat">
+                                <span class="popup-stat-label">vs Anno Prec.</span>
+                                <span class="popup-badge ${deltaAnno >= 0 ? 'positive' : 'negative'}">
+                                    ${deltaAnno > 0 ? '+' : ''}${store.deltaAnnoPct}%
+                                </span>
+                            </div>
+                            <div class="popup-stat">
+                                <span class="popup-stat-label">Coperti</span>
+                                <span class="popup-stat-value">${formatNumber(store.coperti)}</span>
+                            </div>
+                            <div class="popup-stat">
+                                <span class="popup-stat-label">Scontrino Medio</span>
+                                <span class="popup-stat-value">€${store.scontrinoMedio}</span>
+                            </div>
+                        </div>
+                    `, { maxWidth: 280 });
+
+                    markersLayer.addLayer(marker);
+                }
+            });
+
+            // Aggiorna statistiche mappa
+            const cities = Object.keys(citiesData);
+            const totalRevenue = stores.reduce((sum, s) => sum + s.netto, 0);
+            const topCity = Object.entries(citiesData)
+                .sort((a, b) => b[1].totalRevenue - a[1].totalRevenue)[0];
+
+            document.getElementById('mapTotalCities').textContent = cities.length;
+            document.getElementById('mapTotalStores').textContent = stores.length;
+            document.getElementById('mapTotalRevenue').textContent = '€' + formatNumber(totalRevenue);
+            document.getElementById('mapTopCity').textContent = topCity ? topCity[0] : '-';
+        }
+
+        function getCoordsForStore(storeName, city) {
+            // Cerca prima le coordinate della città
+            let baseCoords = CITY_COORDS[city];
+
+            // Se non trovato, cerca una corrispondenza parziale
+            if (!baseCoords) {
+                for (const [cityName, coords] of Object.entries(CITY_COORDS)) {
+                    if (city.includes(cityName) || cityName.includes(city)) {
+                        baseCoords = coords;
+                        break;
+                    }
+                }
+            }
+
+            if (!baseCoords) return null;
+
+            // Applica offset se ci sono più store nella stessa città
+            const cityOffsets = STORE_OFFSETS[city];
+            if (cityOffsets) {
+                for (const storeOffset of cityOffsets) {
+                    if (storeName.toUpperCase().includes(storeOffset.name)) {
+                        return {
+                            lat: baseCoords.lat + storeOffset.offset.lat,
+                            lng: baseCoords.lng + storeOffset.offset.lng
+                        };
+                    }
+                }
+            }
+
+            // Aggiungi un piccolo offset casuale per evitare sovrapposizioni
+            const randomOffset = {
+                lat: (Math.random() - 0.5) * 0.01,
+                lng: (Math.random() - 0.5) * 0.01
+            };
+
+            return {
+                lat: baseCoords.lat + randomOffset.lat,
+                lng: baseCoords.lng + randomOffset.lng
+            };
+        }
+
+        function getColorForRevenue(revenue, min, max) {
+            // Scala colori da arancione chiaro a rosso scuro
+            const colors = [
+                '#FED7AA', // Arancione molto chiaro
+                '#FDBA74', // Arancione chiaro
+                '#FB923C', // Arancione
+                '#F97316', // Arancione intenso
+                '#EA580C', // Arancione scuro
+                '#C2410C', // Rosso-arancione
+                '#9A3412', // Rosso scuro
+                '#7C2D12'  // Marrone-rosso
+            ];
+
+            const range = max - min || 1;
+            const normalized = (revenue - min) / range;
+            const index = Math.min(Math.floor(normalized * colors.length), colors.length - 1);
+
+            return colors[index];
+        }
+
+        function getSizeForRevenue(revenue, min, max) {
+            // Dimensione marker da 28 a 48 pixel
+            const minSize = 28;
+            const maxSize = 48;
+            const range = max - min || 1;
+            const normalized = (revenue - min) / range;
+
+            return Math.round(minSize + normalized * (maxSize - minSize));
+        }
+
+        function updateCurrentDate() {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const today = new Date().toLocaleDateString('it-IT', options);
+            document.getElementById('currentDate').textContent = today.charAt(0).toUpperCase() + today.slice(1);
+        }
+
+        function initDatePicker() {
+            // Set default values
+            document.getElementById('dateFrom').value = filterState.dateFrom;
+            document.getElementById('dateTo').value = filterState.dateTo;
+
+            // Update button text
+            updateDatePickerText();
+            updateToggleButtons();
+        }
+
+        function toggleDatePicker() {
+            const btn = document.getElementById('datePickerBtn');
+            const dropdown = document.getElementById('datePickerDropdown');
+            btn.classList.toggle('open');
+            dropdown.classList.toggle('open');
+
+            if (dropdown.classList.contains('open')) {
+                updateInputVisibility();
+            }
+        }
+
+        function closeDatePicker() {
+            document.getElementById('datePickerBtn').classList.remove('open');
+            document.getElementById('datePickerDropdown').classList.remove('open');
+        }
+
+        function setGranularity(granularity) {
+            filterState.granularity = granularity;
+            currentGranularity = granularity;
+            chartPeriod = granularity;
+
+            // Update active button
+            document.querySelectorAll('.granularity-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.granularity === granularity) {
+                    btn.classList.add('active');
+                }
+            });
+
+            updateInputVisibility();
+            updateToggleButtons();
+        }
+
+        function updateInputVisibility() {
+            const dateFrom = document.getElementById('dateFrom');
+            const dateTo = document.getElementById('dateTo');
+            const weekFrom = document.getElementById('weekFrom');
+            const weekTo = document.getElementById('weekTo');
+            const monthFrom = document.getElementById('monthFrom');
+            const monthTo = document.getElementById('monthTo');
+
+            // Hide all first
+            dateFrom.style.display = 'none';
+            dateTo.style.display = 'none';
+            weekFrom.style.display = 'none';
+            weekTo.style.display = 'none';
+            monthFrom.style.display = 'none';
+            monthTo.style.display = 'none';
+
+            if (filterState.granularity === 'daily') {
+                dateFrom.style.display = 'block';
+                dateTo.style.display = 'block';
+            } else if (filterState.granularity === 'weekly') {
+                weekFrom.style.display = 'block';
+                weekTo.style.display = 'block';
+                populateWeekSelectors();
+            } else if (filterState.granularity === 'monthly') {
+                monthFrom.style.display = 'block';
+                monthTo.style.display = 'block';
+                populateMonthSelectors();
+            }
+        }
+
+        function populateWeekSelectors() {
+            const weekFrom = document.getElementById('weekFrom');
+            const weekTo = document.getElementById('weekTo');
+
+            // Generate weeks 1-52
+            const weeks = availableWeeks.length > 0 ? availableWeeks : Array.from({length: 52}, (_, i) => i + 1);
+
+            weekFrom.innerHTML = weeks.map(w =>
+                `<option value="${w}" ${w === filterState.weekFrom ? 'selected' : ''}>Settimana ${w}</option>`
+            ).join('');
+
+            weekTo.innerHTML = weeks.map(w =>
+                `<option value="${w}" ${w === filterState.weekTo ? 'selected' : ''}>Settimana ${w}</option>`
+            ).join('');
+        }
+
+        function populateMonthSelectors() {
+            const monthFrom = document.getElementById('monthFrom');
+            const monthTo = document.getElementById('monthTo');
+
+            const monthNames = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+                               'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+
+            // Generate months from Jan 2025 to current month
+            const months = [];
+            const startYear = 2025;
+            const now = new Date();
+            const endYear = now.getFullYear();
+            const endMonth = now.getMonth();
+
+            for (let year = startYear; year <= endYear; year++) {
+                const maxMonth = year === endYear ? endMonth : 11;
+                for (let month = 0; month <= maxMonth; month++) {
+                    const value = `${year}-${String(month + 1).padStart(2, '0')}`;
+                    months.push({ value, label: `${monthNames[month]} ${year}` });
+                }
+            }
+
+            monthFrom.innerHTML = months.map(m =>
+                `<option value="${m.value}" ${m.value === filterState.monthFrom ? 'selected' : ''}>${m.label}</option>`
+            ).join('');
+
+            monthTo.innerHTML = months.map(m =>
+                `<option value="${m.value}" ${m.value === filterState.monthTo ? 'selected' : ''}>${m.label}</option>`
+            ).join('');
+        }
+
+        function applyDateFilter() {
+            // Update filter state from inputs
+            if (filterState.granularity === 'daily') {
+                filterState.dateFrom = document.getElementById('dateFrom').value;
+                filterState.dateTo = document.getElementById('dateTo').value;
+            } else if (filterState.granularity === 'weekly') {
+                filterState.weekFrom = parseInt(document.getElementById('weekFrom').value);
+                filterState.weekTo = parseInt(document.getElementById('weekTo').value);
+            } else if (filterState.granularity === 'monthly') {
+                filterState.monthFrom = document.getElementById('monthFrom').value;
+                filterState.monthTo = document.getElementById('monthTo').value;
+            }
+
+            updateDatePickerText();
+            closeDatePicker();
+            loadData();
+        }
+
+        function updateDatePickerText() {
+            const text = document.getElementById('datePickerText');
+            const monthNames = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+
+            if (filterState.granularity === 'daily') {
+                const from = new Date(filterState.dateFrom);
+                const to = new Date(filterState.dateTo);
+                text.textContent = `${from.getDate()} ${monthNames[from.getMonth()]} ${from.getFullYear()} - ${to.getDate()} ${monthNames[to.getMonth()]} ${to.getFullYear()}`;
+            } else if (filterState.granularity === 'weekly') {
+                text.textContent = `Sett. ${filterState.weekFrom} - Sett. ${filterState.weekTo}`;
+            } else if (filterState.granularity === 'monthly') {
+                const [yFrom, mFrom] = filterState.monthFrom.split('-');
+                const [yTo, mTo] = filterState.monthTo.split('-');
+                text.textContent = `${monthNames[parseInt(mFrom) - 1]} ${yFrom} - ${monthNames[parseInt(mTo) - 1]} ${yTo}`;
+            }
+        }
+
+        async function loadData() {
+            try {
+                const params = new URLSearchParams({
+                    dateFilter: 'custom',
+                    period: filterState.granularity
+                });
+
+                // Add date range parameters based on granularity
+                if (filterState.granularity === 'daily') {
+                    params.set('dateFrom', filterState.dateFrom);
+                    params.set('dateTo', filterState.dateTo);
+                } else if (filterState.granularity === 'weekly') {
+                    params.set('weekFrom', filterState.weekFrom);
+                    params.set('weekTo', filterState.weekTo);
+                } else if (filterState.granularity === 'monthly') {
+                    // Convert month range to date range
+                    params.set('dateFrom', filterState.monthFrom + '-01');
+                    const [year, month] = filterState.monthTo.split('-');
+                    const lastDay = new Date(year, month, 0).getDate();
+                    params.set('dateTo', `${filterState.monthTo}-${lastDay}`);
+                }
+
+                const response = await fetch(`${API_URL}?${params}`);
+                currentData = await response.json();
+
+                // Store available weeks for future use
+                if (currentData.filters && currentData.filters.weeks) {
+                    availableWeeks = currentData.filters.weeks;
+                }
+
+                renderKPIs();
+                renderRevenueChart();
+                renderDonutChart();
+                renderStoresTable();
+                updateMap();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('kpiGrid').innerHTML = `
+                    <div class="loading" style="grid-column: 1/-1; color: #DC2626;">
+                        ⚠️ Errore nel caricamento. Verifica che il backend sia attivo su localhost:4000
+                    </div>
+                `;
+            }
+        }
+
+        function renderKPIs() {
+            const kpis = currentData.kpis;
+            const deltaBudget = parseFloat(kpis.deltaBudgetPct);
+            const deltaAnno = parseFloat(kpis.deltaAnnoPct);
+
+            document.getElementById('kpiGrid').innerHTML = `
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-icon orange">💵</div>
+                        <span class="kpi-info-btn">ⓘ</span>
+                    </div>
+                    <div class="kpi-label">Fatturato Netto</div>
+                    <div class="kpi-value">€${formatNumber(kpis.fatturatoNetto)}</div>
+                    <div class="kpi-changes-row">
+                        <div class="kpi-change-item ${deltaBudget >= 0 ? 'positive' : 'negative'}">
+                            <span>${deltaBudget >= 0 ? '▲' : '▼'}</span>
+                            ${Math.abs(deltaBudget).toFixed(1)}%
+                            <span class="kpi-change-label">vs Budget</span>
+                        </div>
+                        <div class="kpi-change-item ${deltaAnno >= 0 ? 'positive' : 'negative'}">
+                            <span>${deltaAnno >= 0 ? '▲' : '▼'}</span>
+                            ${Math.abs(deltaAnno).toFixed(1)}%
+                            <span class="kpi-change-label">vs Anno Prec.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-icon blue">👥</div>
+                        <span class="kpi-info-btn">ⓘ</span>
+                    </div>
+                    <div class="kpi-label">Coperti Totali</div>
+                    <div class="kpi-value">${formatNumber(kpis.coperti)}</div>
+                    <div class="kpi-change neutral">
+                        <span class="kpi-period">Totale periodo</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div class="kpi-icon purple">🍽️</div>
+                        <span class="kpi-info-btn">ⓘ</span>
+                    </div>
+                    <div class="kpi-label">Scontrino Medio</div>
+                    <div class="kpi-value">€${kpis.scontrinoMedio}</div>
+                    <div class="kpi-change neutral">
+                        <span class="kpi-period">Media periodo</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderRevenueChart() {
+            const timeSeries = currentData.timeSeries || [];
+            const canvas = document.getElementById('revenueChart');
+
+            if (revenueChartInstance) revenueChartInstance.destroy();
+
+            const labels = timeSeries.map(d => {
+                if (chartPeriod === 'weekly') {
+                    return `Sett. ${d.period.split('-W')[1] || d.period}`;
+                } else {
+                    const [year, month] = d.period.split('-');
+                    const monthNames = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+                    return monthNames[parseInt(month) - 1] || d.period;
+                }
+            });
+
+            const netto = timeSeries.map(d => d.netto);
+            const budget = timeSeries.map(d => d.budget);
+            const nettoAP = timeSeries.map(d => d.nettoAP);
+
+            // Update header values
+            const totalNetto = netto.reduce((a, b) => a + b, 0);
+            document.getElementById('totalRevenue').textContent = `€${formatNumber(totalNetto)}`;
+            document.getElementById('revenueChange').textContent = `+${currentData.kpis.deltaBudgetPct}%`;
+
+            revenueChartInstance = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Fatturato',
+                            data: netto,
+                            backgroundColor: '#EA580C',
+                            borderRadius: 6,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.7
+                        },
+                        {
+                            label: 'Budget',
+                            data: budget,
+                            backgroundColor: '#FDBA74',
+                            borderRadius: 6,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.7
+                        },
+                        {
+                            label: 'Anno Prec.',
+                            data: nettoAP,
+                            backgroundColor: '#E5E7EB',
+                            borderRadius: 6,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.7
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1F2937',
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: (ctx) => `${ctx.dataset.label}: €${formatNumber(ctx.parsed.y)}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#9CA3AF', font: { size: 11 } }
+                        },
+                        y: {
+                            grid: { color: '#F3F4F6' },
+                            ticks: {
+                                color: '#9CA3AF',
+                                font: { size: 11 },
+                                callback: (val) => '€' + (val / 1000) + 'k'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderDonutChart() {
+            const mix = currentData.kpis.mixCanali;
+            const canvas = document.getElementById('donutChart');
+
+            if (donutChartInstance) donutChartInstance.destroy();
+
+            // Update center percentage
+            document.getElementById('storePercentage').textContent = mix.store.toFixed(1) + '%';
+            document.getElementById('statNetto').textContent = `€${formatNumber(currentData.kpis.fatturatoNetto)}`;
+            document.getElementById('statBudget').textContent = `€${formatNumber(currentData.kpis.budget)}`;
+
+            donutChartInstance = new Chart(canvas, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Store', 'Asporto', 'Deliveroo', 'Glovo', 'Just Eat'],
+                    datasets: [{
+                        data: [mix.store, mix.asporto, mix.deliveroo, mix.glovo, mix.justEat],
+                        backgroundColor: [
+                            '#EA580C',
+                            '#F97316',
+                            '#00CCBC',
+                            '#FFC244',
+                            '#F43F5E'
+                        ],
+                        borderWidth: 0,
+                        cutout: '75%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `${ctx.label}: ${ctx.parsed.toFixed(1)}%`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderStoresTable() {
+            const stores = currentData.storesRanking || [];
+            const medals = ['🥇', '🥈', '🥉'];
+            const tbody = document.getElementById('storesTableBody');
+
+            if (stores.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px; color: #6B7280;">Nessun dato disponibile</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = stores.map((store, index) => {
+                const rank = index < 3 ? medals[index] : (index + 1);
+                const deltaBudget = parseFloat(store.deltaBudgetPct);
+                const deltaAnno = parseFloat(store.deltaAnnoPct);
+
+                return `
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td><span style="font-size: 18px;">${rank}</span></td>
+                        <td><span>${store.name}</span></td>
+                        <td>${store.city}</td>
+                        <td><strong>€${formatNumber(store.netto)}</strong></td>
+                        <td>
+                            <span class="badge ${deltaBudget >= 0 ? 'positive' : 'negative'}">
+                                ${deltaBudget > 0 ? '+' : ''}${store.deltaBudgetPct}%
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge ${deltaAnno >= 0 ? 'positive' : 'negative'}">
+                                ${deltaAnno > 0 ? '+' : ''}${store.deltaAnnoPct}%
+                            </span>
+                        </td>
+                        <td>${formatNumber(store.coperti)}</td>
+                        <td>€${store.scontrinoMedio}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function setChartPeriod(period) {
+            filterState.granularity = period;
+            chartPeriod = period;
+            currentGranularity = period;
+
+            // Update granularity buttons in dropdown
+            document.querySelectorAll('.granularity-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.granularity === period) {
+                    btn.classList.add('active');
+                }
+            });
+
+            updateToggleButtons();
+            updateDatePickerText();
+            loadData();
+        }
+
+        function updateToggleButtons() {
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.period === filterState.granularity) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        function filterStores() {
+            const searchTerm = document.getElementById('storeSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#storesTableBody tr');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+
+        function formatNumber(num) {
+            return Math.round(num).toLocaleString('it-IT');
+        }
+
+        // Fullscreen Chart Functions
+        function openFullscreenChart() {
+            const overlay = document.getElementById('fullscreenOverlay');
+            overlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            renderFullscreenChart();
+        }
+
+        function closeFullscreenChart(event) {
+            if (event && event.target !== event.currentTarget) return;
+            const overlay = document.getElementById('fullscreenOverlay');
+            overlay.classList.remove('open');
+            document.body.style.overflow = '';
+            if (fullscreenChartInstance) {
+                fullscreenChartInstance.destroy();
+                fullscreenChartInstance = null;
+            }
+        }
+
+        function renderFullscreenChart() {
+            const timeSeries = currentData.timeSeries || [];
+            const canvas = document.getElementById('fullscreenRevenueChart');
+
+            if (fullscreenChartInstance) fullscreenChartInstance.destroy();
+
+            const labels = timeSeries.map(d => {
+                if (filterState.granularity === 'weekly') {
+                    return `Sett. ${d.period.replace('W', '')}`;
+                } else if (filterState.granularity === 'monthly') {
+                    const [year, month] = d.period.split('-');
+                    const monthNames = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+                    return `${monthNames[parseInt(month) - 1]} ${year}`;
+                } else {
+                    const date = new Date(d.period);
+                    return date.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
+                }
+            });
+
+            const netto = timeSeries.map(d => d.netto);
+            const budget = timeSeries.map(d => d.budget);
+            const nettoAP = timeSeries.map(d => d.nettoAP);
+
+            fullscreenChartInstance = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Fatturato',
+                            data: netto,
+                            backgroundColor: '#EA580C',
+                            borderRadius: 4,
+                            barPercentage: 0.7,
+                            categoryPercentage: 0.8
+                        },
+                        {
+                            label: 'Budget',
+                            data: budget,
+                            backgroundColor: '#FDBA74',
+                            borderRadius: 4,
+                            barPercentage: 0.7,
+                            categoryPercentage: 0.8
+                        },
+                        {
+                            label: 'Anno Prec.',
+                            data: nettoAP,
+                            backgroundColor: '#E5E7EB',
+                            borderRadius: 4,
+                            barPercentage: 0.7,
+                            categoryPercentage: 0.8
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1F2937',
+                            padding: 16,
+                            cornerRadius: 8,
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 13 },
+                            callbacks: {
+                                label: (ctx) => `${ctx.dataset.label}: €${formatNumber(ctx.parsed.y)}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                color: '#6B7280',
+                                font: { size: 12 },
+                                maxRotation: 45,
+                                minRotation: 0
+                            }
+                        },
+                        y: {
+                            grid: { color: '#F3F4F6' },
+                            ticks: {
+                                color: '#6B7280',
+                                font: { size: 12 },
+                                callback: (val) => '€' + formatNumber(val)
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Close fullscreen on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeFullscreenChart();
+            }
+        });
+
+        // ===== HEATMAP FUNCTIONS =====
+        const HEATMAP_API_URL = '/api/heatmap-weekly';
+        let heatmapData = null;
+
+        async function loadHeatmapData() {
+            try {
+                const response = await fetch(HEATMAP_API_URL);
+                heatmapData = await response.json();
+
+                if (heatmapData.success) {
+                    renderHeatmap('heatmapBudgetContainer', heatmapData.weeks, heatmapData.deltaBudget, 'budget');
+                    renderHeatmap('heatmapAnnoContainer', heatmapData.weeks, heatmapData.deltaAnno, 'anno');
+                } else {
+                    throw new Error(heatmapData.error || 'Errore caricamento heatmap');
+                }
+            } catch (error) {
+                console.error('Error loading heatmap data:', error);
+                document.getElementById('heatmapBudgetContainer').innerHTML = `
+                    <div class="loading" style="color: #DC2626;">
+                        Errore caricamento heatmap
+                    </div>
+                `;
+                document.getElementById('heatmapAnnoContainer').innerHTML = `
+                    <div class="loading" style="color: #DC2626;">
+                        Errore caricamento heatmap
+                    </div>
+                `;
+            }
+        }
+
+        function getHeatmapCellClass(value) {
+            if (value === null || value === undefined) return 'no-data';
+            if (value >= 15) return 'positive-strong';
+            if (value >= 8) return 'positive-medium';
+            if (value >= 0) return 'positive-light';
+            if (value >= -8) return 'negative-light';
+            if (value >= -15) return 'negative-medium';
+            return 'negative-strong';
+        }
+
+        function renderHeatmap(containerId, weeks, data, type) {
+            const container = document.getElementById(containerId);
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="loading">Nessun dato disponibile</div>';
+                return;
+            }
+
+            // Crea tabella
+            let html = '<table class="heatmap-table"><thead><tr><th>Store</th>';
+
+            // Header settimane
+            weeks.forEach(week => {
+                html += `<th>W${week}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            // Righe store
+            data.forEach(row => {
+                html += `<tr><td>${row.store}</td>`;
+                row.values.forEach((value, idx) => {
+                    const cellClass = getHeatmapCellClass(value);
+                    const displayValue = value !== null ? `${value > 0 ? '+' : ''}${value}%` : '-';
+                    html += `<td><div class="heatmap-cell ${cellClass}" title="${row.store} - W${weeks[idx]}: ${displayValue}">${displayValue}</div></td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Carica heatmap dopo il caricamento dei dati principali
+        setTimeout(() => {
+            loadHeatmapData();
+        }, 500);
+    </script>
+</body>
+</html>
