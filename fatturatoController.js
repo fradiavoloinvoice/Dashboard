@@ -365,7 +365,7 @@ export async function getHeatmapWeeklyData(req, res) {
     const data = await getFatturatoSheetsData();
     const rows = data.fatturato.slice(1); // Skip header
 
-    // Mappa: store -> week -> { netto, budget, nettoAP }
+    // Mappa: store -> week -> { netto, budget, nettoAP, coperti, fatturatoStore }
     const heatmapData = {};
     const weeksSet = new Set();
     const storesSet = new Set();
@@ -383,12 +383,17 @@ export async function getHeatmapWeeklyData(req, res) {
         heatmapData[storeName] = {};
       }
       if (!heatmapData[storeName][week]) {
-        heatmapData[storeName][week] = { netto: 0, budget: 0, nettoAP: 0 };
+        heatmapData[storeName][week] = { netto: 0, budget: 0, nettoAP: 0, coperti: 0, fatturatoStore: 0 };
       }
 
-      heatmapData[storeName][week].netto += parseNumber(r[COL.NETTO]);
+      const netto = parseNumber(r[COL.NETTO]);
+      const pctStore = parseNumber(r[COL.PCT_STORE]);
+
+      heatmapData[storeName][week].netto += netto;
       heatmapData[storeName][week].budget += parseNumber(r[COL.BUDGET]);
       heatmapData[storeName][week].nettoAP += parseNumber(r[COL.NETTO_AP]);
+      heatmapData[storeName][week].coperti += parseNumber(r[COL.COPERTI]);
+      heatmapData[storeName][week].fatturatoStore += (netto * pctStore / 100);
     });
 
     // Ordina settimane e store
@@ -421,12 +426,24 @@ export async function getHeatmapWeeklyData(req, res) {
       };
     });
 
+    // Raw data per store per week (for trend analysis)
+    const rawData = {};
+    stores.forEach(store => {
+      rawData[store] = {};
+      weeks.forEach(week => {
+        if (heatmapData[store]?.[week]) {
+          rawData[store][week] = heatmapData[store][week];
+        }
+      });
+    });
+
     res.json({
       success: true,
       weeks,
       stores,
       deltaBudget: deltaBudgetMatrix,
-      deltaAnno: deltaAnnoMatrix
+      deltaAnno: deltaAnnoMatrix,
+      rawData // Per-store-per-week raw values for trend modal
     });
 
   } catch (error) {

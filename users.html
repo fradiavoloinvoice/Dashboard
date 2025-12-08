@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Utenti - Fradiavolo Dashboard</title>
+    <script>
+        // Controllo autenticazione e ruolo Admin
+        if (sessionStorage.getItem('fradiavolo_logged') !== 'true') {
+            window.location.href = 'login.html';
+        }
+        if (sessionStorage.getItem('fradiavolo_role') !== 'Admin') {
+            window.location.href = 'dash.html';
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #F8F9FA; min-height: 100vh; display: flex; }
+
+        /* Sidebar */
+        .sidebar { width: 260px; background: #FFFFFF; border-right: 1px solid #E5E7EB; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; }
+        .logo { padding: 24px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #E5E7EB; }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .logo-text { font-size: 20px; font-weight: 700; color: #1F2937; }
+        .nav-section { padding: 20px 12px; flex: 1; overflow-y: auto; }
+        .nav-label { font-size: 11px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 12px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; cursor: pointer; transition: all 0.2s; text-decoration: none; color: #6B7280; font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+        .nav-item:hover { background: #FFF7ED; color: #EA580C; }
+        .nav-item.active { background: #FFF7ED; color: #EA580C; }
+        .nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+        .sidebar-footer { padding: 12px; border-top: 1px solid #E5E7EB; margin-top: auto; }
+
+        /* Main Content */
+        .main { flex: 1; margin-left: 260px; min-height: 100vh; }
+        .header { background: white; padding: 16px 32px; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
+        .header-left { display: flex; align-items: center; gap: 16px; }
+        .page-title { font-size: 18px; font-weight: 600; color: #1F2937; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+
+        /* Avatar */
+        .avatar-container { position: relative; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; cursor: pointer; }
+        .avatar-dropdown { position: absolute; top: 50px; right: 0; background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 1px solid #E5E7EB; min-width: 220px; display: none; z-index: 1000; overflow: hidden; }
+        .avatar-dropdown.show { display: block; }
+        .dropdown-header { padding: 16px; border-bottom: 1px solid #E5E7EB; background: #F9FAFB; }
+        .dropdown-user-name { font-weight: 600; color: #1F2937; font-size: 14px; }
+        .dropdown-user-role { font-size: 12px; color: #6B7280; margin-top: 2px; }
+        .dropdown-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #374151; text-decoration: none; font-size: 14px; transition: background 0.15s; cursor: pointer; }
+        .dropdown-item:hover { background: #FFF7ED; color: #EA580C; }
+        .dropdown-item.danger { color: #DC2626; }
+        .dropdown-item.danger:hover { background: #FEF2F2; }
+        .dropdown-divider { height: 1px; background: #E5E7EB; }
+
+        /* Content */
+        .content { padding: 32px; max-width: 1200px; margin: 0 auto; }
+        .page-header { margin-bottom: 32px; }
+        .page-header h1 { font-size: 28px; font-weight: 700; color: #1F2937; margin-bottom: 8px; }
+        .page-header p { color: #6B7280; font-size: 15px; }
+
+        /* Cards */
+        .card { background: white; border-radius: 16px; border: 1px solid #E5E7EB; overflow: hidden; }
+        .card-header { padding: 20px 24px; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 16px; font-weight: 600; color: #1F2937; }
+        .card-body { padding: 24px; }
+
+        /* Table */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #F9FAFB; }
+        th { padding: 14px 16px; text-align: left; font-weight: 600; font-size: 12px; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #E5E7EB; }
+        td { padding: 16px; border-bottom: 1px solid #F3F4F6; font-size: 14px; color: #374151; vertical-align: middle; }
+        tbody tr:hover { background: #FFF7ED; }
+
+        /* Badges */
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-admin { background: #DBEAFE; color: #1E40AF; }
+        .badge-manager { background: #D1FAE5; color: #065F46; }
+        .badge-store { background: #FEF3C7; color: #92400E; }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; text-decoration: none; }
+        .btn-primary { background: #EA580C; color: white; }
+        .btn-primary:hover { background: #C2410C; }
+        .btn-secondary { background: #F3F4F6; color: #374151; }
+        .btn-secondary:hover { background: #E5E7EB; }
+        .btn-danger { background: #FEF2F2; color: #DC2626; }
+        .btn-danger:hover { background: #FEE2E2; }
+        .btn-sm { padding: 6px 12px; font-size: 13px; }
+        .btn-icon { width: 36px; height: 36px; padding: 0; justify-content: center; border-radius: 8px; }
+
+        /* Form */
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px; }
+        .form-input { width: 100%; padding: 12px 16px; border: 2px solid #E5E7EB; border-radius: 10px; font-size: 14px; transition: border-color 0.2s; }
+        .form-input:focus { outline: none; border-color: #EA580C; }
+        .form-select { width: 100%; padding: 12px 16px; border: 2px solid #E5E7EB; border-radius: 10px; font-size: 14px; background: white; cursor: pointer; }
+        .form-select:focus { outline: none; border-color: #EA580C; }
+
+        /* Checkboxes */
+        .checkbox-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+        .checkbox-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #F9FAFB; border-radius: 10px; cursor: pointer; transition: background 0.2s; }
+        .checkbox-item:hover { background: #FFF7ED; }
+        .checkbox-item input { width: 18px; height: 18px; accent-color: #EA580C; cursor: pointer; }
+        .checkbox-item label { font-size: 14px; color: #374151; cursor: pointer; flex: 1; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
+        .modal-overlay.show { display: flex; }
+        .modal { background: white; border-radius: 20px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { padding: 24px; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: center; }
+        .modal-title { font-size: 20px; font-weight: 700; color: #1F2937; }
+        .modal-close { width: 36px; height: 36px; border-radius: 10px; border: none; background: #F3F4F6; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+        .modal-close:hover { background: #E5E7EB; }
+        .modal-body { padding: 24px; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid #E5E7EB; display: flex; justify-content: flex-end; gap: 12px; background: #F9FAFB; }
+
+        /* Pages list */
+        .pages-list { display: flex; flex-wrap: wrap; gap: 6px; }
+        .page-tag { display: inline-block; padding: 4px 10px; background: #FFF7ED; color: #EA580C; border-radius: 6px; font-size: 12px; font-weight: 500; }
+
+        /* Actions */
+        .actions { display: flex; gap: 8px; }
+
+        /* Empty state */
+        .empty-state { text-align: center; padding: 60px 20px; color: #6B7280; }
+        .empty-state-icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-state-text { font-size: 16px; }
+
+        /* Hamburger Button */
+        .hamburger-btn {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 40px;
+            height: 40px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .hamburger-btn:hover { background: #F3F4F6; }
+        .hamburger-btn span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #374151;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 99;
+        }
+        .sidebar-overlay.show { display: block; }
+
+        /* Responsive - Tablet */
+        @media (max-width: 1024px) {
+            .sidebar { width: 220px; }
+            .main { margin-left: 220px; }
+            .content { padding: 24px; }
+        }
+
+        /* Responsive - Mobile */
+        @media (max-width: 768px) {
+            .hamburger-btn { display: flex; }
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .header { padding: 12px 16px; }
+            .content { padding: 16px; }
+            .checkbox-group { grid-template-columns: 1fr; }
+            .page-header h1 { font-size: 22px; }
+            .card-header { flex-direction: column; gap: 12px; align-items: stretch; }
+            .card-header .btn { width: 100%; justify-content: center; }
+            table { min-width: 600px; }
+            .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .modal { margin: 16px; max-height: calc(100vh - 32px); }
+        }
+
+        /* Responsive - Small Mobile */
+        @media (max-width: 480px) {
+            .logo-text { font-size: 16px; }
+            .nav-item { padding: 10px 12px; font-size: 13px; }
+            .page-header h1 { font-size: 20px; }
+            .avatar { width: 36px; height: 36px; font-size: 12px; }
+            .btn { padding: 8px 16px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">🍕</div>
+            <span class="logo-text">Fradiavolo</span>
+        </div>
+        <nav class="nav-section" id="navSection">
+            <div class="nav-label">Dashboard</div>
+            <a href="dash.html" class="nav-item" data-page="dash"><span class="nav-icon">📊</span> Overview</a>
+            <a href="stores.html" class="nav-item" data-page="stores"><span class="nav-icon">🏪</span> Punti Vendita</a>
+            <a href="recensioni.html" class="nav-item" data-page="recensioni"><span class="nav-icon">⭐</span> Recensioni</a>
+            <div class="nav-label" style="margin-top: 16px;">Piattaforme</div>
+            <a href="glovo.html" class="nav-item" data-page="glovo"><span class="nav-icon">🟡</span> Glovo</a>
+            <a href="deliveroo.html" class="nav-item" data-page="deliveroo"><span class="nav-icon">🔵</span> Deliveroo</a>
+            <a href="justeat.html" class="nav-item" data-page="justeat"><span class="nav-icon">🟠</span> Just Eat</a>
+            <a href="combined.html" class="nav-item" data-page="combined"><span class="nav-icon">📦</span> Delivery Multipiattaforma</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="users.html" class="nav-item active" data-page="users"><span class="nav-icon">👥</span> Gestione Utenti</a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <header class="header">
+            <div class="header-left">
+                <button class="hamburger-btn" onclick="toggleSidebar()">
+                    <span></span><span></span><span></span>
+                </button>
+                <span class="page-title">Gestione Utenti</span>
+            </div>
+            <div class="header-right">
+                <div class="avatar-container">
+                    <div class="avatar" onclick="toggleAvatarDropdown()" id="avatarBtn">
+                        <span id="avatarInitials">AP</span>
+                    </div>
+                    <div class="avatar-dropdown" id="avatarDropdown">
+                        <div class="dropdown-header">
+                            <div class="dropdown-user-name" id="dropdownUserName">Admin</div>
+                            <div class="dropdown-user-role" id="dropdownUserRole">Amministratore</div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item danger" onclick="logout()">
+                            <span>🚪</span> Esci
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="page-header">
+                <h1>👥 Gestione Utenti</h1>
+                <p>Crea, modifica e gestisci gli accessi degli utenti al sistema</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Elenco Utenti</span>
+                    <button class="btn btn-primary" onclick="openModal()">
+                        <span>+</span> Nuovo Utente
+                    </button>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Utente</th>
+                                    <th>Ruolo</th>
+                                    <th>Pagine Accessibili</th>
+                                    <th style="width: 120px;">Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Nuovo Utente</span>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="userId">
+                    <div class="form-group">
+                        <label class="form-label">Nome Utente</label>
+                        <input type="text" class="form-input" id="formUsername" placeholder="es. Mario Rossi" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-input" id="formPassword" placeholder="Inserisci password">
+                        <small style="color: #6B7280; font-size: 12px; margin-top: 4px; display: block;">Lascia vuoto per mantenere la password attuale (in modifica)</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ruolo</label>
+                        <select class="form-select" id="formRole" required>
+                            <option value="">Seleziona ruolo...</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Punto vendita">Punto vendita</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Pagine Accessibili</label>
+                        <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="selectAllPages()">Seleziona Tutto</button>
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="deselectAllPages()">Deseleziona Tutto</button>
+                        </div>
+                        <div class="checkbox-group" id="pagesCheckboxes">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="page_dash" value="dash">
+                                <label for="page_dash">📊 Overview (dash)</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="page_stores" value="stores">
+                                <label for="page_stores">🏪 Punti Vendita</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="page_recensioni" value="recensioni">
+                                <label for="page_recensioni">⭐ Recensioni</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="page_glovo" value="glovo">
+                                <label for="page_glovo">🟡 Glovo</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="page_deliveroo" value="deliveroo">
+                                <label for="page_deliveroo">🔵 Deliveroo</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="page_justeat" value="justeat">
+                                <label for="page_justeat">🟠 Just Eat</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="page_combined" value="combined">
+                                <label for="page_combined">📦 Delivery Multi</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="page_delivery-report" value="delivery-report">
+                                <label for="page_delivery-report">📋 Delivery Report</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Annulla</button>
+                <button class="btn btn-primary" onclick="saveUser()">Salva Utente</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar toggle
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('show');
+        }
+
+        // Avatar dropdown
+        function toggleAvatarDropdown() {
+            document.getElementById('avatarDropdown').classList.toggle('show');
+        }
+
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('avatarDropdown');
+            const avatar = document.getElementById('avatarBtn');
+            if (dropdown && avatar && !avatar.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        // Initialize user info
+        function initUserInfo() {
+            const user = sessionStorage.getItem('fradiavolo_user') || 'Admin';
+            const role = sessionStorage.getItem('fradiavolo_role') || 'Admin';
+            const allowedPages = JSON.parse(sessionStorage.getItem('fradiavolo_pages') || '[]');
+
+            const initials = user.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            document.getElementById('avatarInitials').textContent = initials || 'AP';
+            document.getElementById('dropdownUserName').textContent = user;
+            const roleLabels = { 'Admin': 'Amministratore', 'Manager': 'Manager', 'Punto vendita': 'Punto Vendita' };
+            document.getElementById('dropdownUserRole').textContent = roleLabels[role] || role;
+
+            // Filter sidebar based on allowed pages
+            document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+                const page = item.getAttribute('data-page');
+                if (page === 'users') {
+                    item.style.display = role === 'Admin' ? 'flex' : 'none';
+                } else {
+                    item.style.display = allowedPages.includes(page) ? 'flex' : 'none';
+                }
+            });
+        }
+
+        // Get users from localStorage
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('fradiavolo_users') || '[]');
+        }
+
+        // Save users to localStorage
+        function saveUsers(users) {
+            localStorage.setItem('fradiavolo_users', JSON.stringify(users));
+        }
+
+        // Render users table
+        function renderUsers() {
+            const users = getUsers();
+            const tbody = document.getElementById('usersTableBody');
+
+            if (users.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">👤</div>
+                                <div class="empty-state-text">Nessun utente trovato</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = users.map(user => {
+                const roleBadge = {
+                    'Admin': 'badge-admin',
+                    'Manager': 'badge-manager',
+                    'Punto vendita': 'badge-store'
+                }[user.role] || 'badge-store';
+
+                const pageLabels = {
+                    'dash': 'Overview',
+                    'stores': 'Punti Vendita',
+                    'recensioni': 'Recensioni',
+                    'glovo': 'Glovo',
+                    'deliveroo': 'Deliveroo',
+                    'justeat': 'Just Eat',
+                    'combined': 'Delivery Multi',
+                    'delivery-report': 'Delivery Report',
+                    'users': 'Gestione Utenti'
+                };
+
+                const pagesHtml = user.pages
+                    .filter(p => p !== 'users')
+                    .slice(0, 4)
+                    .map(p => `<span class="page-tag">${pageLabels[p] || p}</span>`)
+                    .join('');
+                const extraPages = user.pages.filter(p => p !== 'users').length > 4
+                    ? `<span class="page-tag">+${user.pages.filter(p => p !== 'users').length - 4}</span>`
+                    : '';
+
+                const isCurrentUser = user.username === sessionStorage.getItem('fradiavolo_user');
+
+                return `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">
+                                    ${user.username.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; color: #1F2937;">${user.username}</div>
+                                    <div style="font-size: 12px; color: #6B7280;">ID: ${user.id}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge ${roleBadge}">${user.role}</span></td>
+                        <td>
+                            <div class="pages-list">
+                                ${pagesHtml}${extraPages}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn btn-icon btn-secondary" onclick="editUser(${user.id})" title="Modifica">✏️</button>
+                                ${!isCurrentUser ? `<button class="btn btn-icon btn-danger" onclick="deleteUser(${user.id})" title="Elimina">🗑️</button>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Modal functions
+        function openModal(userId = null) {
+            document.getElementById('modalOverlay').classList.add('show');
+            document.getElementById('userForm').reset();
+            document.getElementById('userId').value = '';
+
+            if (userId) {
+                document.getElementById('modalTitle').textContent = 'Modifica Utente';
+                const users = getUsers();
+                const user = users.find(u => u.id === userId);
+                if (user) {
+                    document.getElementById('userId').value = user.id;
+                    document.getElementById('formUsername').value = user.username;
+                    document.getElementById('formRole').value = user.role;
+
+                    // Check pages
+                    user.pages.forEach(page => {
+                        const checkbox = document.getElementById('page_' + page);
+                        if (checkbox) checkbox.checked = true;
+                    });
+                }
+            } else {
+                document.getElementById('modalTitle').textContent = 'Nuovo Utente';
+            }
+        }
+
+        function closeModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('modalOverlay').classList.remove('show');
+        }
+
+        function selectAllPages() {
+            document.querySelectorAll('#pagesCheckboxes input[type="checkbox"]').forEach(cb => cb.checked = true);
+        }
+
+        function deselectAllPages() {
+            document.querySelectorAll('#pagesCheckboxes input[type="checkbox"]').forEach(cb => cb.checked = false);
+        }
+
+        function saveUser() {
+            const userId = document.getElementById('userId').value;
+            const username = document.getElementById('formUsername').value.trim();
+            const password = document.getElementById('formPassword').value;
+            const role = document.getElementById('formRole').value;
+
+            if (!username || !role) {
+                alert('Compila tutti i campi obbligatori');
+                return;
+            }
+
+            // Get selected pages
+            const pages = [];
+            document.querySelectorAll('#pagesCheckboxes input[type="checkbox"]:checked').forEach(cb => {
+                pages.push(cb.value);
+            });
+
+            if (pages.length === 0) {
+                alert('Seleziona almeno una pagina accessibile');
+                return;
+            }
+
+            // Add users page for Admin
+            if (role === 'Admin' && !pages.includes('users')) {
+                pages.push('users');
+            }
+
+            let users = getUsers();
+
+            if (userId) {
+                // Update existing user
+                const index = users.findIndex(u => u.id === parseInt(userId));
+                if (index !== -1) {
+                    users[index].username = username;
+                    if (password) users[index].password = password;
+                    users[index].role = role;
+                    users[index].pages = pages;
+
+                    // Update session if current user
+                    if (users[index].username === sessionStorage.getItem('fradiavolo_user')) {
+                        sessionStorage.setItem('fradiavolo_role', role);
+                        sessionStorage.setItem('fradiavolo_pages', JSON.stringify(pages));
+                    }
+                }
+            } else {
+                // Check if username exists
+                if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+                    alert('Esiste già un utente con questo nome');
+                    return;
+                }
+
+                if (!password) {
+                    alert('Inserisci una password per il nuovo utente');
+                    return;
+                }
+
+                // Add new user
+                const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
+                users.push({
+                    id: newId,
+                    username: username,
+                    password: password,
+                    role: role,
+                    pages: pages
+                });
+            }
+
+            saveUsers(users);
+            renderUsers();
+            closeModal();
+        }
+
+        function editUser(userId) {
+            openModal(userId);
+        }
+
+        function deleteUser(userId) {
+            if (!confirm('Sei sicuro di voler eliminare questo utente?')) return;
+
+            let users = getUsers();
+            users = users.filter(u => u.id !== userId);
+            saveUsers(users);
+            renderUsers();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initUserInfo();
+            renderUsers();
+        });
+    </script>
+</body>
+</html>

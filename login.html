@@ -139,13 +139,34 @@
     </div>
 
     <script>
-        // Credenziali di accesso
-        const VALID_USERNAME = 'Admin';
-        const VALID_PASSWORD = 'FraDiav0l0!2025#Secure';
+        // Inizializza database utenti in localStorage se non esiste
+        function initUsersDB() {
+            if (!localStorage.getItem('fradiavolo_users')) {
+                const defaultUsers = [
+                    {
+                        id: 1,
+                        username: 'Admin',
+                        password: 'FraDiav0l0!2025#Secure',
+                        role: 'Admin',
+                        pages: ['dash', 'stores', 'recensioni', 'glovo', 'deliveroo', 'justeat', 'combined', 'delivery-report', 'users']
+                    }
+                ];
+                localStorage.setItem('fradiavolo_users', JSON.stringify(defaultUsers));
+            }
+        }
+        initUsersDB();
 
-        // Controlla se gia loggato
+        // Controlla se già loggato
         if (sessionStorage.getItem('fradiavolo_logged') === 'true') {
-            window.location.href = 'dash.html';
+            const pages = JSON.parse(sessionStorage.getItem('fradiavolo_pages') || '[]');
+            // Redirect alla prima pagina disponibile
+            if (pages.includes('dash')) {
+                window.location.href = 'dash.html';
+            } else if (pages.length > 0) {
+                window.location.href = pages[0] + '.html';
+            } else {
+                window.location.href = 'dash.html';
+            }
         }
 
         function handleLogin(e) {
@@ -155,13 +176,25 @@
             const password = document.getElementById('password').value;
             const errorEl = document.getElementById('errorMessage');
 
-            if (username === VALID_USERNAME && password === VALID_PASSWORD) {
+            // Cerca utente nel database
+            const users = JSON.parse(localStorage.getItem('fradiavolo_users') || '[]');
+            const user = users.find(u => u.username === username && u.password === password);
+
+            if (user) {
                 // Salva sessione
                 sessionStorage.setItem('fradiavolo_logged', 'true');
-                sessionStorage.setItem('fradiavolo_user', username);
+                sessionStorage.setItem('fradiavolo_user', user.username);
+                sessionStorage.setItem('fradiavolo_role', user.role);
+                sessionStorage.setItem('fradiavolo_pages', JSON.stringify(user.pages));
 
-                // Redirect alla dashboard
-                window.location.href = 'dash.html';
+                // Redirect alla prima pagina disponibile
+                if (user.pages.includes('dash')) {
+                    window.location.href = 'dash.html';
+                } else if (user.pages.length > 0) {
+                    window.location.href = user.pages[0] + '.html';
+                } else {
+                    window.location.href = 'dash.html';
+                }
             } else {
                 // Mostra errore
                 errorEl.classList.add('show');

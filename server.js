@@ -5,7 +5,6 @@ import { getAllData as getGlovoData } from './glovoController.js';
 import { getFatturatoData, getHeatmapWeeklyData } from './fatturatoController.js';
 import { getDeliverooData } from './deliverooController.js';
 import { getCombinedData } from './combinedController.js';
-import { getUnifiedData } from './unifiedController.js';
 import { getRecensioniData, getSondaggioData, getRecensioniByStore, getNpsRanking, getUnderperformingStores, getDeliveryComparison } from './recensioniController.js';
 import { getDeliveryReport } from './deliveryReportController.js';
 import { getJustEatData } from './justeatController.js';
@@ -39,8 +38,6 @@ app.get('/api/heatmap-weekly', getHeatmapWeeklyData);
 // ✅ COMBINED ENDPOINT (Glovo + Deliveroo)
 app.get('/api/combined', getCombinedData);
 
-// ✅ UNIFIED ENDPOINT (Glovo + Deliveroo + Fatturato - Vista completa per store)
-app.get('/api/unified', getUnifiedData);
 
 // ✅ RECENSIONI ENDPOINT
 app.get('/api/recensioni', getRecensioniData);
@@ -74,7 +71,6 @@ app.get('/api/health', (req, res) => {
       '/api/justeat',
       '/api/fatturato',
       '/api/combined',
-      '/api/unified',
       '/api/recensioni',
       '/api/sondaggio'
     ]
@@ -89,7 +85,6 @@ app.listen(PORT, () => {
   console.log(`🍔 Just Eat API: http://localhost:${PORT}/api/justeat`);
   console.log(`💰 Fatturato API: http://localhost:${PORT}/api/fatturato`);
   console.log(`📊 Combined API: http://localhost:${PORT}/api/combined`);
-  console.log(`🎯 Unified API: http://localhost:${PORT}/api/unified`);
   console.log(`⭐ Recensioni API: http://localhost:${PORT}/api/recensioni`);
   console.log(`📋 Sondaggio API: http://localhost:${PORT}/api/sondaggio`);
   console.log(`📋 Delivery Report API: http://localhost:${PORT}/api/delivery-report`);

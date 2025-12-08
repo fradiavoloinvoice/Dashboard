@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fradiavolo - Stores</title>
-    <script>if(sessionStorage.getItem('fradiavolo_logged')!=='true')window.location.href='login.html';</script>
+    <script>
+    if(sessionStorage.getItem('fradiavolo_logged')!=='true'){window.location.href='login.html';}
+    else{const pages=JSON.parse(sessionStorage.getItem('fradiavolo_pages')||'[]');if(!pages.includes('stores')){alert('Non hai accesso a questa pagina');window.location.href='login.html';}}
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -14,11 +17,16 @@
             box-sizing: border-box;
         }
 
+        html {
+            overflow-x: hidden;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: #F8F9FA;
             min-height: 100vh;
             display: flex;
+            overflow-x: hidden;
         }
 
         /* ===== SIDEBAR ===== */
@@ -199,6 +207,8 @@
             flex: 1;
             margin-left: 260px;
             min-height: 100vh;
+            overflow-x: hidden;
+            max-width: 100vw;
         }
 
         .header {
@@ -714,6 +724,7 @@
 
         .platform-logo.glovo { background: #FFC244; }
         .platform-logo.deliveroo { background: #00CCBC; }
+        .platform-logo.justeat { background: #FF8000; }
 
         .platform-title {
             font-size: 16px;
@@ -911,46 +922,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .kpi-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .charts-row {
-                grid-template-columns: 1fr;
-            }
-            .mix-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                height: 100vh;
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-                z-index: 100;
-            }
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            .main {
-                margin-left: 0;
-            }
-            .kpi-grid {
-                grid-template-columns: 1fr;
-            }
-            .mix-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .hamburger-btn {
-                display: flex !important;
-            }
-        }
-
         /* ===== HAMBURGER MENU ===== */
         .hamburger-btn {
             display: none;
@@ -966,11 +937,7 @@
             align-items: center;
             gap: 5px;
         }
-
-        .hamburger-btn:hover {
-            background: #F3F4F6;
-        }
-
+        .hamburger-btn:hover { background: #F3F4F6; }
         .hamburger-btn span {
             display: block;
             width: 20px;
@@ -980,20 +947,29 @@
             transition: all 0.3s;
         }
 
+        /* ===== SIDEBAR OVERLAY ===== */
         .sidebar-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            inset: 0;
             background: rgba(0, 0, 0, 0.5);
             z-index: 99;
         }
+        .sidebar-overlay.open { display: block; }
 
-        .sidebar-overlay.open {
-            display: block;
-        }
+        /* ===== AVATAR DROPDOWN ===== */
+        .avatar { cursor: pointer; }
+        .avatar-container { position: relative; }
+        .avatar-dropdown { position: absolute; top: 50px; right: 0; background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 1px solid #E5E7EB; min-width: 220px; display: none; z-index: 1000; overflow: hidden; }
+        .avatar-dropdown.show { display: block; }
+        .dropdown-header { padding: 16px; border-bottom: 1px solid #E5E7EB; background: #F9FAFB; }
+        .dropdown-user-name { font-weight: 600; color: #1F2937; font-size: 14px; }
+        .dropdown-user-role { font-size: 12px; color: #6B7280; margin-top: 2px; }
+        .dropdown-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #374151; text-decoration: none; font-size: 14px; transition: background 0.15s; cursor: pointer; }
+        .dropdown-item:hover { background: #FFF7ED; color: #EA580C; }
+        .dropdown-item.danger { color: #DC2626; }
+        .dropdown-item.danger:hover { background: #FEF2F2; }
+        .dropdown-divider { height: 1px; background: #E5E7EB; }
 
         /* ===== RESPONSIVE - TABLET ===== */
         @media (max-width: 1024px) {
@@ -1007,26 +983,198 @@
 
         /* ===== RESPONSIVE - MOBILE ===== */
         @media (max-width: 768px) {
-            .main { margin-left: 0; }
-            .header { padding: 12px 16px; }
-            .content { padding: 16px; }
-            .kpi-grid, .stats-grid { grid-template-columns: 1fr; gap: 12px; }
-            .charts-section { grid-template-columns: 1fr; }
-            .chart-card { padding: 16px; }
-            .store-selector-row { flex-direction: column; gap: 12px; }
-            .store-select { width: 100%; }
-            .date-picker-wrapper { width: 100%; }
-            .date-picker-btn { width: 100%; justify-content: center; }
-            table { min-width: 500px; }
-            .table-card { overflow-x: auto; }
+            .hamburger-btn { display: flex; }
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 100;
+            }
+            .sidebar.open { transform: translateX(0); }
+
+            .main {
+                margin-left: 0;
+                width: 100%;
+                max-width: 100vw;
+            }
+
+            .header {
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .header-left {
+                flex: 1;
+                min-width: 0;
+                gap: 8px;
+            }
+
+            .page-title {
+                font-size: 16px;
+            }
+
+            .content {
+                padding: 16px;
+                overflow-x: hidden;
+            }
+
+            /* Store selector */
+            .store-selector-row {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+
+            .store-select {
+                width: 100%;
+                min-width: 0;
+            }
+
+            /* Date picker */
+            .date-picker-wrapper {
+                width: 100%;
+            }
+
+            .date-picker-btn {
+                width: 100%;
+                justify-content: center;
+                padding: 12px 16px;
+            }
+
+            .date-picker-dropdown {
+                position: fixed;
+                top: auto;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                max-height: 80vh;
+                border-radius: 16px 16px 0 0;
+                overflow-y: auto;
+            }
+
+            .date-picker-range {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .date-picker-field {
+                width: 100%;
+            }
+
+            /* KPI and Stats */
+            .kpi-grid, .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .kpi-card {
+                padding: 16px;
+            }
+
+            /* Charts */
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-card {
+                padding: 16px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .chart-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+
+            .chart-container {
+                min-width: 280px;
+            }
+
+            /* Tables */
+            .table-card {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                min-width: 500px;
+            }
+
+            /* Buttons */
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* Avatar dropdown */
+            .avatar-dropdown {
+                right: -10px;
+                min-width: 200px;
+            }
         }
 
         /* ===== RESPONSIVE - SMALL MOBILE ===== */
         @media (max-width: 480px) {
-            .logo-text { font-size: 16px; }
-            .nav-item { padding: 10px 12px; font-size: 13px; }
-            .kpi-value { font-size: 20px; }
-            .avatar { width: 32px; height: 32px; font-size: 12px; }
+            .content {
+                padding: 12px;
+            }
+
+            .logo-text {
+                font-size: 16px;
+            }
+
+            .nav-item {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+
+            .page-title {
+                font-size: 14px;
+            }
+
+            .kpi-card {
+                padding: 14px;
+            }
+
+            .kpi-value {
+                font-size: 20px;
+            }
+
+            .kpi-label {
+                font-size: 12px;
+            }
+
+            .avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+
+            .btn {
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+
+            .chart-card {
+                padding: 14px;
+            }
+
+            .store-select {
+                font-size: 14px;
+                padding: 10px 12px;
+            }
+
+            .date-picker-btn {
+                padding: 10px 12px;
+                font-size: 12px;
+            }
         }
     </style>
 </head>
@@ -1041,33 +1189,37 @@
             <span class="logo-text">Fradiavolo</span>
         </div>
 
-        <nav class="nav-section">
+        <nav class="nav-section" id="navSection">
             <div class="nav-label">Menu</div>
-            <a href="dash.html" class="nav-item">
+            <a href="dash.html" class="nav-item" data-page="dash">
                 <span class="nav-icon">📊</span>
                 Dashboard
             </a>
-            <a href="stores.html" class="nav-item active">
+            <a href="stores.html" class="nav-item active" data-page="stores">
                 <span class="nav-icon">🏪</span>
                 Stores
             </a>
-            <a href="recensioni.html" class="nav-item">
+            <a href="analisi-week.html" class="nav-item" data-page="analisi-week">
+                <span class="nav-icon">📅</span>
+                Analisi Week
+            </a>
+            <a href="recensioni.html" class="nav-item" data-page="recensioni">
                 <span class="nav-icon">⭐</span>
                 Recensioni
             </a>
-            <a href="glovo.html" class="nav-item">
+            <a href="glovo.html" class="nav-item" data-page="glovo">
                 <span class="nav-icon">🟡</span>
                 Glovo
             </a>
-            <a href="deliveroo.html" class="nav-item">
+            <a href="deliveroo.html" class="nav-item" data-page="deliveroo">
                 <span class="nav-icon">🔵</span>
                 Deliveroo
             </a>
-            <a href="justeat.html" class="nav-item">
+            <a href="justeat.html" class="nav-item" data-page="justeat">
                 <span class="nav-icon">🟠</span>
                 Just Eat
             </a>
-            <a href="combined.html" class="nav-item">
+            <a href="combined.html" class="nav-item" data-page="combined">
                 <span class="nav-icon">📦</span>
                 Delivery Multipiattaforma
             </a>
@@ -1086,7 +1238,21 @@
                 <span class="page-title">Analisi Store</span>
             </div>
             <div class="header-right">
-                <div class="avatar">AP</div>
+                <div class="avatar-container">
+                    <div class="avatar" onclick="toggleAvatarDropdown()" id="avatarBtn">
+                        <span id="avatarInitials">AP</span>
+                    </div>
+                    <div class="avatar-dropdown" id="avatarDropdown">
+                        <div class="dropdown-header">
+                            <div class="dropdown-user-name" id="dropdownUserName">Admin</div>
+                            <div class="dropdown-user-role" id="dropdownUserRole">Amministratore</div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item danger" onclick="logout()">
+                            <span>🚪</span> Esci
+                        </div>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -1220,6 +1386,32 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Just Eat -->
+                <div class="platform-card" id="justeatCard" style="display: none;">
+                    <div class="platform-header">
+                        <div class="platform-logo justeat">🍔</div>
+                        <h3 class="platform-title">Just Eat</h3>
+                    </div>
+                    <div class="platform-kpis" id="justeatKpis">
+                        <div class="platform-kpi">
+                            <div class="platform-kpi-label">GMV</div>
+                            <div class="platform-kpi-value" id="justeatGmv">-</div>
+                        </div>
+                        <div class="platform-kpi">
+                            <div class="platform-kpi-label">Ordini</div>
+                            <div class="platform-kpi-value" id="justeatOrders">-</div>
+                        </div>
+                        <div class="platform-kpi">
+                            <div class="platform-kpi-label">AOV</div>
+                            <div class="platform-kpi-value" id="justeatAov">-</div>
+                        </div>
+                        <div class="platform-kpi">
+                            <div class="platform-kpi-label">Rating</div>
+                            <div class="platform-kpi-value" id="justeatRating">-</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Reviews Section -->
@@ -1332,11 +1524,13 @@
         const API_URL = '/api/fatturato';
         const GLOVO_API_URL = '/api/glovo';
         const DELIVEROO_API_URL = '/api/deliveroo';
+        const JUSTEAT_API_URL = '/api/justeat';
         const RECENSIONI_API_URL = '/api/recensioni/store';
 
         let currentStoreData = null;
         let glovoData = null;
         let deliverooData = null;
+        let justeatData = null;
         let recensioniData = null;
         let trendChartInstance = null;
         let trendPeriod = 'weekly';
@@ -1528,6 +1722,13 @@
                         option.textContent = store;
                         selector.appendChild(option);
                     });
+
+                    // Set default store to FDV Milano Citylife (or first available)
+                    const defaultStore = allStores.find(s => s.toLowerCase().includes('milano citylife')) || allStores[0];
+                    if (defaultStore) {
+                        selector.value = defaultStore;
+                        loadStoreData();
+                    }
                 }
 
                 if (data.filters && data.filters.weeks) {
@@ -1580,16 +1781,18 @@
                     recensioniParams.set('weekTo', filterState.weekTo);
                 }
 
-                const [fatturatoResponse, glovoResponse, deliverooResponse, recensioniResponse] = await Promise.all([
+                const [fatturatoResponse, glovoResponse, deliverooResponse, justeatResponse, recensioniResponse] = await Promise.all([
                     fetch(`${API_URL}?${params}`),
                     fetch(`${GLOVO_API_URL}?week=all`),
                     fetch(`${DELIVEROO_API_URL}?week=all`),
+                    fetch(`${JUSTEAT_API_URL}?week=all`),
                     fetch(`${RECENSIONI_API_URL}/${encodeURIComponent(storeName)}?${recensioniParams}`)
                 ]);
 
                 currentStoreData = await fatturatoResponse.json();
                 glovoData = await glovoResponse.json();
                 deliverooData = await deliverooResponse.json();
+                justeatData = await justeatResponse.json();
                 recensioniData = await recensioniResponse.json();
 
                 // Show sections
@@ -1874,6 +2077,49 @@
                 document.getElementById('deliverooAov').textContent = '-';
                 document.getElementById('deliverooRating').textContent = '-';
             }
+
+            // ===== JUST EAT: Aggregate from stores/timeSeries =====
+            let justeatGmv = 0, justeatOrders = 0, justeatRating = '-';
+
+            if (justeatData && justeatData.stores) {
+                // Find matching store (Just Eat stores have storeName normalized to FDV format)
+                const justeatStore = justeatData.stores.find(s => matchStoreName(s.storeName, storeName));
+
+                if (justeatStore) {
+                    const originalName = justeatStore.originalStoreName || justeatStore.storeName;
+
+                    // If weekly filter, aggregate from timeSeries
+                    if (filterState.granularity === 'weekly' && justeatData.timeSeries && justeatData.timeSeries[originalName]) {
+                        const storeTimeSeries = justeatData.timeSeries[originalName];
+                        storeTimeSeries.forEach(entry => {
+                            if (isWeekInRange(entry.week)) {
+                                justeatGmv += entry.gmv || 0;
+                                justeatOrders += entry.orders || 0;
+                            }
+                        });
+                    } else {
+                        // Use total values
+                        justeatGmv = justeatStore.gmv;
+                        justeatOrders = justeatStore.orders;
+                    }
+
+                    // Get rating
+                    justeatRating = justeatStore.avgRating ? justeatStore.avgRating.toFixed(1) : '-';
+                }
+            }
+
+            // Render Just Eat KPIs (only show card if data exists)
+            const justeatCard = document.getElementById('justeatCard');
+            if (justeatGmv > 0) {
+                justeatCard.style.display = 'block';
+                const justeatAov = justeatOrders > 0 ? (justeatGmv / justeatOrders).toFixed(2) : '0';
+                document.getElementById('justeatGmv').textContent = `€${formatNumber(justeatGmv)}`;
+                document.getElementById('justeatOrders').textContent = formatNumber(justeatOrders);
+                document.getElementById('justeatAov').textContent = `€${justeatAov}`;
+                document.getElementById('justeatRating').textContent = justeatRating;
+            } else {
+                justeatCard.style.display = 'none';
+            }
         }
 
         function renderTrendChart() {
@@ -1979,6 +2225,34 @@
         function formatNumber(num) {
             return Math.round(num).toLocaleString('it-IT');
         }
+
+        // Avatar dropdown
+        function toggleAvatarDropdown() {
+            document.getElementById('avatarDropdown').classList.toggle('show');
+        }
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.avatar-container')) {
+                document.getElementById('avatarDropdown')?.classList.remove('show');
+            }
+        });
+
+        // Logout
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        // Init user info
+        function initUserInfo() {
+            const user = sessionStorage.getItem('fradiavolo_user') || 'Admin';
+            const role = sessionStorage.getItem('fradiavolo_role') || 'Admin';
+            const initials = user.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            document.getElementById('avatarInitials').textContent = initials || 'AP';
+            document.getElementById('dropdownUserName').textContent = user;
+            const roleLabels = { 'Admin': 'Amministratore', 'Manager': 'Manager', 'Punto vendita': 'Punto Vendita' };
+            document.getElementById('dropdownUserRole').textContent = roleLabels[role] || role;
+        }
+        document.addEventListener('DOMContentLoaded', initUserInfo);
     </script>
 </body>
 </html>

@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fradiavolo - Analisi Week</title>
+    <script>
+    if(sessionStorage.getItem('fradiavolo_logged')!=='true'){window.location.href='login.html';}
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #F8F9FA; min-height: 100vh; display: flex; }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar { width: 260px; background: #FFFFFF; border-right: 1px solid #E5E7EB; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; }
+        .logo { padding: 24px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #E5E7EB; }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .logo-text { font-size: 20px; font-weight: 700; color: #1F2937; }
+        .nav-section { padding: 20px 12px; flex: 1; }
+        .nav-label { font-size: 11px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 12px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; cursor: pointer; transition: all 0.2s; text-decoration: none; color: #6B7280; font-size: 14px; font-weight: 500; margin-bottom: 4px; position: relative; }
+        .nav-item:hover { background: #FFF7ED; color: #EA580C; }
+        .nav-item.active { background: #FFF7ED; color: #EA580C; }
+        .nav-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 24px; background: #EA580C; border-radius: 0 4px 4px 0; }
+        .nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+
+        /* ===== MAIN CONTENT ===== */
+        main { flex: 1; margin-left: 260px; padding: 24px; min-height: 100vh; }
+
+        /* Page Header */
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .page-title-section h1 { font-size: 24px; font-weight: 700; color: #1F2937; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+        .page-title-section p { font-size: 14px; color: #6B7280; }
+        .header-actions { display: flex; gap: 12px; }
+        .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-primary { background: #EA580C; color: white; border-radius: 10px; }
+        .btn-primary:hover { background: #C2410C; }
+
+        /* Filters */
+        .filters-card { background: #FFFFFF; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
+        .filter-group { flex: 1; min-width: 180px; }
+        .filter-group label { display: block; font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 6px; text-transform: uppercase; }
+        .filter-group select { width: 100%; padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 14px; background: white; cursor: pointer; }
+        .filter-group select:focus { outline: none; border-color: #EA580C; }
+
+        /* ===== AVATAR DROPDOWN ===== */
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; cursor: pointer; }
+        .avatar-container { position: relative; }
+        .avatar-dropdown { position: absolute; top: 50px; right: 0; background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 1px solid #E5E7EB; min-width: 220px; display: none; z-index: 1000; overflow: hidden; }
+        .avatar-dropdown.show { display: block; }
+        .dropdown-header { padding: 16px; border-bottom: 1px solid #E5E7EB; background: #F9FAFB; }
+        .dropdown-user-name { font-weight: 600; color: #1F2937; font-size: 14px; }
+        .dropdown-user-role { font-size: 12px; color: #6B7280; margin-top: 2px; }
+        .dropdown-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #374151; text-decoration: none; font-size: 14px; transition: background 0.15s; cursor: pointer; }
+        .dropdown-item:hover { background: #FFF7ED; color: #EA580C; }
+        .dropdown-item.danger { color: #DC2626; }
+        .dropdown-item.danger:hover { background: #FEF2F2; }
+        .dropdown-divider { height: 1px; background: #E5E7EB; }
+
+        /* ===== HAMBURGER MENU ===== */
+        .hamburger-btn { display: none; width: 40px; height: 40px; border: none; background: transparent; cursor: pointer; padding: 8px; border-radius: 8px; flex-direction: column; justify-content: center; align-items: center; gap: 5px; }
+        .hamburger-btn:hover { background: #F3F4F6; }
+        .hamburger-btn span { display: block; width: 20px; height: 2px; background: #374151; border-radius: 2px; transition: all 0.3s; }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 99; }
+        .sidebar-overlay.open { display: block; }
+
+        /* ===== ANALYSIS SECTIONS ===== */
+        .analysis-container { display: flex; flex-direction: column; gap: 24px; }
+
+        .analysis-section { background: #FFFFFF; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #EA580C; }
+        .section-header h2 { font-size: 20px; font-weight: 700; color: #1F2937; }
+        .section-header .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge.chain { background: #DBEAFE; color: #1E40AF; }
+        .badge.store { background: #FEF3C7; color: #92400E; }
+
+        /* KPI Cards */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .kpi-card { background: #F9FAFB; padding: 20px; border-radius: 12px; border: 1px solid #E5E7EB; }
+        .kpi-card h3 { font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 8px; text-transform: uppercase; }
+        .kpi-card .value { font-size: 24px; font-weight: 700; color: #1F2937; margin-bottom: 4px; }
+        .kpi-card .delta { font-size: 12px; font-weight: 600; }
+        .kpi-card .delta.positive { color: #059669; }
+        .kpi-card .delta.negative { color: #DC2626; }
+        .kpi-card .delta.neutral { color: #6B7280; }
+
+        /* Subsections */
+        .subsection { margin-bottom: 24px; }
+        .subsection-title { font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .subsection-title::before { content: ''; width: 4px; height: 16px; background: #EA580C; border-radius: 2px; }
+
+        /* Mini Grid */
+        .mini-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+        .mini-card { background: #F9FAFB; padding: 16px; border-radius: 8px; text-align: center; }
+        .mini-card .label { font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; margin-bottom: 4px; }
+        .mini-card .value { font-size: 18px; font-weight: 700; color: #1F2937; }
+        .mini-card .sub { font-size: 11px; color: #6B7280; margin-top: 2px; }
+        .mini-card .sub.positive { color: #059669; }
+        .mini-card .sub.negative { color: #DC2626; }
+
+        /* Channel Mix Bar */
+        .channel-mix { margin-bottom: 16px; }
+        .channel-bar { display: flex; height: 32px; border-radius: 8px; overflow: hidden; margin-bottom: 8px; }
+        .channel-segment { display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 600; min-width: 40px; transition: all 0.3s; }
+        .channel-segment.store { background: #3B82F6; }
+        .channel-segment.asporto { background: #8B5CF6; }
+        .channel-segment.glovo { background: #FFC244; color: #1F2937; }
+        .channel-segment.deliveroo { background: #00CCBC; }
+        .channel-segment.justeat { background: #FF8000; }
+        .channel-legend { display: flex; flex-wrap: wrap; gap: 12px; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6B7280; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        /* Review Summary */
+        .review-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+        .review-card { background: #F9FAFB; padding: 16px; border-radius: 8px; }
+        .review-card .platform { font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .review-card .stats { display: flex; justify-content: space-between; }
+        .review-card .stat { text-align: center; }
+        .review-card .stat .num { font-size: 18px; font-weight: 700; color: #1F2937; }
+        .review-card .stat .lbl { font-size: 10px; color: #6B7280; text-transform: uppercase; }
+
+        /* Delivery Summary */
+        .delivery-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .delivery-platform { background: #F9FAFB; padding: 16px; border-radius: 8px; }
+        .delivery-platform .header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .delivery-platform .header .logo { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .delivery-platform .header .logo.glovo { background: #FFC244; }
+        .delivery-platform .header .logo.deliveroo { background: #00CCBC; }
+        .delivery-platform .header .logo.justeat { background: #FF8000; }
+        .delivery-platform .header .name { font-weight: 600; font-size: 14px; color: #374151; }
+        .delivery-platform .metrics { display: flex; flex-direction: column; gap: 8px; }
+        .delivery-platform .metric { display: flex; justify-content: space-between; font-size: 13px; }
+        .delivery-platform .metric .label { color: #6B7280; }
+        .delivery-platform .metric .value { font-weight: 600; color: #1F2937; }
+
+        /* Store Sections */
+        .store-section { border-top: 1px solid #E5E7EB; padding-top: 20px; margin-top: 20px; }
+        .store-section:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+
+        /* Loading */
+        .loading { text-align: center; padding: 60px 20px; color: #6B7280; }
+        .loading-spinner { width: 40px; height: 40px; border: 3px solid #E5E7EB; border-top-color: #EA580C; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Week Commentary Box */
+        .week-commentary {
+            background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+            border: 1px solid #FDBA74;
+            border-left: 4px solid #EA580C;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+        }
+        .commentary-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .commentary-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #9A3412;
+            margin: 0;
+        }
+        .commentary-header .week-badge {
+            background: #EA580C;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .commentary-content {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #78350F;
+        }
+        .commentary-content p {
+            margin: 0 0 12px 0;
+        }
+        .commentary-content p:last-child {
+            margin-bottom: 0;
+        }
+        .commentary-highlight {
+            font-weight: 600;
+            color: #9A3412;
+        }
+        .commentary-positive {
+            color: #059669;
+            font-weight: 600;
+        }
+        .commentary-negative {
+            color: #DC2626;
+            font-weight: 600;
+        }
+        .commentary-list {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+        .commentary-list li {
+            margin-bottom: 6px;
+        }
+
+        /* Area Filter Bar */
+        .area-filter-bar {
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .area-filter-bar .filter-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .area-filter-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .area-filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            background: white;
+            font-size: 13px;
+            font-weight: 600;
+            color: #6B7280;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .area-filter-btn:hover {
+            border-color: #EA580C;
+            color: #EA580C;
+        }
+        .area-filter-btn.active {
+            background: #EA580C;
+            border-color: #EA580C;
+            color: white;
+        }
+        .area-filter-btn .count {
+            background: rgba(0,0,0,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        .area-filter-btn.active .count {
+            background: rgba(255,255,255,0.2);
+        }
+        .filter-info {
+            margin-left: auto;
+            font-size: 12px;
+            color: #9CA3AF;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .sidebar { width: 220px; }
+            main { margin-left: 220px; padding: 24px; }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .delivery-summary { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .hamburger-btn { display: flex; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100vh; transform: translateX(-100%); transition: transform 0.3s ease; z-index: 100; }
+            .sidebar.open { transform: translateX(0); }
+            main { margin-left: 0; padding: 16px; }
+            .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .kpi-grid { grid-template-columns: 1fr; gap: 12px; }
+            .filters-card { flex-direction: column; }
+            .filter-group { width: 100%; }
+        }
+
+        /* ===== TREND MODAL ===== */
+        .trend-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .trend-modal-overlay.show { display: flex; }
+        .trend-modal { background: white; border-radius: 16px; max-width: 700px; width: 100%; max-height: 90vh; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalSlideIn 0.3s ease; }
+        @keyframes modalSlideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .trend-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #E5E7EB; background: #F9FAFB; }
+        .trend-modal-header h3 { font-size: 18px; font-weight: 700; color: #1F2937; display: flex; align-items: center; gap: 10px; }
+        .trend-modal-close { width: 36px; height: 36px; border: none; background: #E5E7EB; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .trend-modal-close:hover { background: #DC2626; color: white; }
+        .trend-modal-body { padding: 24px; max-height: calc(90vh - 80px); overflow-y: auto; }
+        .trend-current { display: flex; align-items: center; gap: 16px; padding: 16px; background: #FFF7ED; border-radius: 12px; margin-bottom: 20px; }
+        .trend-current-value { font-size: 32px; font-weight: 700; color: #EA580C; }
+        .trend-current-label { font-size: 14px; color: #6B7280; }
+        .trend-current-week { font-size: 12px; color: #9CA3AF; margin-top: 2px; }
+        .trend-table { width: 100%; border-collapse: collapse; }
+        .trend-table th { text-align: left; padding: 12px 16px; background: #F9FAFB; font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase; border-bottom: 2px solid #E5E7EB; }
+        .trend-table td { padding: 12px 16px; border-bottom: 1px solid #E5E7EB; font-size: 14px; }
+        .trend-table tr:hover { background: #F9FAFB; }
+        .trend-table tr.current { background: #FFF7ED; font-weight: 600; }
+        .trend-table .week-col { color: #374151; font-weight: 600; }
+        .trend-table .value-col { color: #1F2937; font-weight: 600; }
+        .trend-table .delta-col { font-weight: 600; }
+        .trend-table .delta-col.positive { color: #059669; }
+        .trend-table .delta-col.negative { color: #DC2626; }
+        .trend-chart { height: 200px; margin-bottom: 20px; display: flex; align-items: flex-end; gap: 8px; padding: 20px 0; }
+        .trend-bar { flex: 1; background: linear-gradient(to top, #EA580C, #F97316); border-radius: 4px 4px 0 0; min-height: 10px; transition: all 0.3s; position: relative; cursor: pointer; }
+        .trend-bar:hover { opacity: 0.8; }
+        .trend-bar.current { background: linear-gradient(to top, #059669, #10B981); }
+        .trend-bar-label { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #6B7280; white-space: nowrap; }
+        .trend-bar-value { position: absolute; top: -24px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 600; color: #374151; white-space: nowrap; }
+
+        /* Clickable data points */
+        .clickable-data { cursor: pointer; transition: all 0.2s; border-radius: 4px; }
+        .clickable-data:hover { background: #FFF7ED; transform: scale(1.02); }
+        .kpi-card.clickable-data:hover { border-color: #EA580C; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.15); }
+        .mini-card.clickable-data:hover { background: #FFF7ED; box-shadow: 0 2px 8px rgba(234, 88, 12, 0.1); }
+        .review-card.clickable-data:hover { background: #FFF7ED; }
+        .delivery-platform.clickable-data:hover { background: #FFF7ED; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">🍕</div>
+            <span class="logo-text">Fradiavolo</span>
+        </div>
+        <nav class="nav-section" id="navSection">
+            <div class="nav-label">Menu</div>
+            <a href="dash.html" class="nav-item" data-page="dash">
+                <span class="nav-icon">📊</span>
+                Dashboard
+            </a>
+            <a href="stores.html" class="nav-item" data-page="stores">
+                <span class="nav-icon">🏪</span>
+                Stores
+            </a>
+            <a href="analisi-week.html" class="nav-item active" data-page="analisi-week">
+                <span class="nav-icon">📅</span>
+                Analisi Week
+            </a>
+            <a href="recensioni.html" class="nav-item" data-page="recensioni">
+                <span class="nav-icon">⭐</span>
+                Recensioni
+            </a>
+            <a href="glovo.html" class="nav-item" data-page="glovo">
+                <span class="nav-icon">🟡</span>
+                Glovo
+            </a>
+            <a href="deliveroo.html" class="nav-item" data-page="deliveroo">
+                <span class="nav-icon">🔵</span>
+                Deliveroo
+            </a>
+            <a href="justeat.html" class="nav-item" data-page="justeat">
+                <span class="nav-icon">🟠</span>
+                Just Eat
+            </a>
+            <a href="combined.html" class="nav-item" data-page="combined">
+                <span class="nav-icon">📦</span>
+                Delivery Multipiattaforma
+            </a>
+        </nav>
+    </aside>
+
+    <main>
+        <div class="page-header">
+            <button class="hamburger-btn" onclick="toggleSidebar()">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="page-title-section">
+                <h1>📅 Analisi Week</h1>
+                <p>Report settimanale automatizzato per catena e singoli store</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="loadAllData()">🔄 Aggiorna</button>
+                <div class="avatar-container">
+                    <div class="avatar" onclick="toggleAvatarDropdown()" id="avatarBtn">
+                        <span id="avatarInitials">AP</span>
+                    </div>
+                    <div class="avatar-dropdown" id="avatarDropdown">
+                        <div class="dropdown-header">
+                            <div class="dropdown-user-name" id="dropdownUserName">Admin</div>
+                            <div class="dropdown-user-role" id="dropdownUserRole">Amministratore</div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item danger" onclick="logout()">
+                            <span>🚪</span> Esci
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filters-card">
+            <div class="filter-group">
+                <label>Settimana</label>
+                <select id="weekSelector" onchange="loadAllData()">
+                    <option value="">Caricamento...</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="analysisContainer" class="analysis-container">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>Caricamento analisi settimanale...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Trend Modal -->
+    <div class="trend-modal-overlay" id="trendModal" onclick="closeTrendModal(event)">
+        <div class="trend-modal" onclick="event.stopPropagation()">
+            <div class="trend-modal-header">
+                <h3 id="trendModalTitle">📈 Andamento Settimanale</h3>
+                <button class="trend-modal-close" onclick="closeTrendModal()">✕</button>
+            </div>
+            <div class="trend-modal-body" id="trendModalBody">
+                <!-- Content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== API URLs =====
+        const FATTURATO_API = '/api/fatturato';
+        const HEATMAP_API = '/api/heatmap-weekly';
+        const GLOVO_API = '/api/glovo';
+        const DELIVEROO_API = '/api/deliveroo';
+        const JUSTEAT_API = '/api/justeat';
+        const RECENSIONI_API = '/api/recensioni';
+        const SONDAGGIO_API = '/api/sondaggio';
+
+        // ===== Global Data =====
+        let fatturatoData = null;
+        let fatturatoFullData = null; // Full unfiltered data for trend analysis
+        let heatmapData = null; // Per-store-per-week data for trends
+        let glovoData = null;
+        let deliverooData = null;
+        let justeatData = null;
+        let recensioniData = null;
+        let sondaggioData = null;
+        let selectedWeek = null;
+        let previousWeekData = null;
+        let availableWeeks = [];
+        let selectedArea = 'all'; // Filter: 'all', 'michele', 'nicolas'
+
+        // ===== Area Mapping =====
+        const AREA_MAPPING = {
+            michele: [
+                "FDV ARESE", "FDV BRESCIA CENTRO", "FDV BRESCIA ELNOS",
+                "FDV MILANO BICOCCA", "FDV MILANO CITYLIFE", "FDV MILANO ISOLA",
+                "FDV MILANO PORTA VENEZIA", "FDV MILANO PREMUDA", "FDV MILANO SEMPIONE",
+                "FDV MONZA", "FDV VARESE", "FDV BOLOGNA S.STEFANO", "FDV MODENA", "FDV PARMA", "FDV RIMINI"
+            ],
+            nicolas: [
+                "FDV GENOVA CASTELLO", "FDV GENOVA MARE", "FDV NOVARA",
+                "FDV ROMA OSTIENSE", "FDV ROMA PARIOLI", "FDV ROMA TRASTEVERE",
+                "FDV TORINO CARLINA", "FDV TORINO GM", "FDV TORINO IV MARZO",
+                "FDV TORINO SAN SALVARIO", "FDV TORINO VANCHIGLIA", "FDV ALESSANDRIA", "FDV ASTI"
+            ]
+        };
+
+        function getStoreArea(storeName) {
+            const normalizedName = storeName.toUpperCase().trim();
+            if (AREA_MAPPING.michele.some(s => normalizedName.includes(s.replace('FDV ', '')))) return 'michele';
+            if (AREA_MAPPING.nicolas.some(s => normalizedName.includes(s.replace('FDV ', '')))) return 'nicolas';
+            return 'other';
+        }
+
+        function filterStoresByArea(stores) {
+            if (selectedArea === 'all') return stores;
+            return stores.filter(store => {
+                const area = getStoreArea(store.name);
+                return area === selectedArea;
+            });
+        }
+
+        // ===== Initialize =====
+        document.addEventListener('DOMContentLoaded', async () => {
+            updateUserInfo();
+            await loadWeeks();
+            await loadAllData();
+        });
+
+        function updateUserInfo() {
+            const username = sessionStorage.getItem('fradiavolo_username') || 'Admin';
+            const initials = username.substring(0, 2).toUpperCase();
+            document.getElementById('avatarInitials').textContent = initials;
+            document.getElementById('dropdownUserName').textContent = username;
+        }
+
+        async function loadWeeks() {
+            try {
+                // Fetch both fatturato and heatmap data for trend analysis
+                const [fattResponse, heatmapResponse] = await Promise.all([
+                    fetch(FATTURATO_API),
+                    fetch(HEATMAP_API)
+                ]);
+
+                const data = await fattResponse.json();
+                heatmapData = await heatmapResponse.json();
+
+                // Store full fatturato data for trend analysis
+                fatturatoFullData = data;
+
+                const weeks = data.filters?.weeks || [];
+                availableWeeks = weeks.map(w => parseInt(w)).sort((a, b) => a - b);
+
+                const selector = document.getElementById('weekSelector');
+                selector.innerHTML = '';
+
+                // Sort weeks descending and select the most recent one
+                const sortedWeeks = [...weeks].sort((a, b) => b - a);
+
+                sortedWeeks.forEach((week, index) => {
+                    const option = document.createElement('option');
+                    option.value = week;
+                    option.textContent = `Settimana ${week}`;
+                    if (index === 0) option.selected = true;
+                    selector.appendChild(option);
+                });
+
+                selectedWeek = sortedWeeks[0];
+            } catch (error) {
+                console.error('Error loading weeks:', error);
+            }
+        }
+
+        async function loadAllData() {
+            const container = document.getElementById('analysisContainer');
+            container.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Caricamento analisi settimanale...</p>
+                </div>
+            `;
+
+            selectedWeek = parseInt(document.getElementById('weekSelector').value);
+            const previousWeek = selectedWeek > 1 ? selectedWeek - 1 : null;
+
+            try {
+                // Fetch all data in parallel
+                const [fattResp, fattPrevResp, glovoResp, deliverooResp, justeatResp, recensioniResp, sondaggioResp] = await Promise.all([
+                    fetch(`${FATTURATO_API}?dateFilter=${selectedWeek}&period=weekly`),
+                    previousWeek ? fetch(`${FATTURATO_API}?dateFilter=${previousWeek}&period=weekly`) : Promise.resolve(null),
+                    fetch(GLOVO_API),
+                    fetch(DELIVEROO_API),
+                    fetch(JUSTEAT_API),
+                    fetch(RECENSIONI_API),
+                    fetch(SONDAGGIO_API)
+                ]);
+
+                fatturatoData = await fattResp.json();
+                previousWeekData = fattPrevResp ? await fattPrevResp.json() : null;
+                glovoData = await glovoResp.json();
+                deliverooData = await deliverooResp.json();
+                justeatData = await justeatResp.json();
+                recensioniData = await recensioniResp.json();
+                sondaggioData = await sondaggioResp.json();
+
+                renderAnalysis();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                container.innerHTML = `<div class="loading"><p>Errore nel caricamento dei dati</p></div>`;
+            }
+        }
+
+        function renderAnalysis() {
+            const container = document.getElementById('analysisContainer');
+            container.innerHTML = '';
+
+            // 0. Week Commentary - Executive Summary
+            container.appendChild(renderWeekCommentary());
+
+            // 1. Chain Analysis
+            container.appendChild(renderChainAnalysis());
+
+            // 2. Area Filter Bar
+            container.appendChild(renderAreaFilter());
+
+            // 3. Per-Store Analysis (filtered by area)
+            const stores = fatturatoData.storesRanking || [];
+            const filteredStores = filterStoresByArea(stores);
+            filteredStores.forEach(store => {
+                container.appendChild(renderStoreAnalysis(store));
+            });
+        }
+
+        function renderAreaFilter() {
+            const div = document.createElement('div');
+            div.className = 'area-filter-bar';
+
+            const stores = fatturatoData.storesRanking || [];
+
+            // Count stores per area
+            const countMichele = stores.filter(s => getStoreArea(s.name) === 'michele').length;
+            const countNicolas = stores.filter(s => getStoreArea(s.name) === 'nicolas').length;
+            const countOther = stores.filter(s => getStoreArea(s.name) === 'other').length;
+            const countAll = stores.length;
+
+            div.innerHTML = `
+                <div class="filter-label">
+                    <span>🗺️</span>
+                    <span>Filtra per Area</span>
+                </div>
+                <div class="area-filter-buttons">
+                    <button class="area-filter-btn ${selectedArea === 'all' ? 'active' : ''}" onclick="setAreaFilter('all')">
+                        Tutti
+                        <span class="count">${countAll}</span>
+                    </button>
+                    <button class="area-filter-btn ${selectedArea === 'michele' ? 'active' : ''}" onclick="setAreaFilter('michele')">
+                        👤 Area Michele
+                        <span class="count">${countMichele}</span>
+                    </button>
+                    <button class="area-filter-btn ${selectedArea === 'nicolas' ? 'active' : ''}" onclick="setAreaFilter('nicolas')">
+                        👤 Area Nicolas
+                        <span class="count">${countNicolas}</span>
+                    </button>
+                    ${countOther > 0 ? `
+                        <button class="area-filter-btn ${selectedArea === 'other' ? 'active' : ''}" onclick="setAreaFilter('other')">
+                            Altro
+                            <span class="count">${countOther}</span>
+                        </button>
+                    ` : ''}
+                </div>
+                <div class="filter-info">
+                    ${selectedArea !== 'all' ? `Visualizzando ${filterStoresByArea(stores).length} punti vendita` : ''}
+                </div>
+            `;
+
+            return div;
+        }
+
+        function setAreaFilter(area) {
+            selectedArea = area;
+            renderAnalysis();
+        }
+
+        function renderWeekCommentary() {
+            const div = document.createElement('div');
+            div.className = 'week-commentary';
+
+            const kpis = fatturatoData.kpis || {};
+            const stores = fatturatoData.storesRanking || [];
+            const prevKpis = previousWeekData?.kpis || {};
+
+            // Calculate key metrics
+            const deltaBudget = parseFloat(kpis.deltaBudgetPct) || 0;
+            const deltaAnno = parseFloat(kpis.deltaAnnoPct) || 0;
+            const fatturato = parseFloat(kpis.fatturatoNetto) || 0;
+            const budget = parseFloat(kpis.budget) || 0;
+            const coperti = kpis.coperti || 0;
+            const scontrino = parseFloat(kpis.scontrinoMedio) || 0;
+
+            // Find best and worst performing stores
+            const storesSorted = [...stores].sort((a, b) => parseFloat(b.deltaBudgetPct) - parseFloat(a.deltaBudgetPct));
+            const bestStores = storesSorted.filter(s => parseFloat(s.deltaBudgetPct) >= 0).slice(0, 3);
+            const worstStores = storesSorted.filter(s => parseFloat(s.deltaBudgetPct) < 0).sort((a, b) => parseFloat(a.deltaBudgetPct) - parseFloat(b.deltaBudgetPct)).slice(0, 3);
+
+            // Get delivery data
+            const glovoWeekData = getGlovoChainData(selectedWeek);
+            const deliverooWeekData = getDeliverooChainData(selectedWeek);
+            const justeatWeekData = getJustEatChainData(selectedWeek);
+            const totalDeliveryGMV = (glovoWeekData?.gmv || 0) + (deliverooWeekData?.gmv || 0) + (justeatWeekData?.gmv || 0);
+            const totalDeliveryOrders = (glovoWeekData?.orders || 0) + (deliverooWeekData?.orders || 0) + (justeatWeekData?.orders || 0);
+
+            // Get reviews data
+            const chainRecensioni = getChainRecensioni(selectedWeek);
+            const chainSondaggio = getChainSondaggio(selectedWeek);
+            const totalRecensioni = (chainRecensioni.google?.count || 0) + (chainRecensioni.tripadvisor?.count || 0) + (chainRecensioni.thefork?.count || 0);
+
+            // Week-over-week changes
+            const copertiChange = prevKpis.coperti ? ((coperti - prevKpis.coperti) / prevKpis.coperti * 100).toFixed(1) : null;
+            const scontrinoChange = prevKpis.scontrinoMedio ? ((scontrino - parseFloat(prevKpis.scontrinoMedio)) / parseFloat(prevKpis.scontrinoMedio) * 100).toFixed(1) : null;
+
+            // Build commentary
+            let commentary = '';
+
+            // 1. Overall performance
+            const budgetStatus = deltaBudget >= 0 ? 'positivo' : 'negativo';
+            const budgetClass = deltaBudget >= 0 ? 'commentary-positive' : 'commentary-negative';
+            const yoyClass = deltaAnno >= 0 ? 'commentary-positive' : 'commentary-negative';
+
+            commentary += `<p>La <span class="commentary-highlight">Settimana ${selectedWeek}</span> registra un fatturato netto di <span class="commentary-highlight">${formatCurrency(fatturato)}</span> con un andamento <span class="${budgetClass}">${deltaBudget >= 0 ? '+' : ''}${deltaBudget}% rispetto al budget</span> e <span class="${yoyClass}">${deltaAnno >= 0 ? '+' : ''}${deltaAnno}% rispetto all'anno precedente</span>. `;
+
+            if (deltaBudget < 0) {
+                const gap = budget - fatturato;
+                commentary += `Il gap rispetto al budget target è di <span class="commentary-negative">${formatCurrency(gap)}</span>.</p>`;
+            } else {
+                commentary += `L'obiettivo di budget è stato raggiunto e superato.</p>`;
+            }
+
+            // 2. Coperti and Scontrino
+            commentary += `<p>I coperti totali sono stati <span class="commentary-highlight">${formatNumber(coperti)}</span>`;
+            if (copertiChange !== null) {
+                const copertiClass = parseFloat(copertiChange) >= 0 ? 'commentary-positive' : 'commentary-negative';
+                commentary += ` (<span class="${copertiClass}">${parseFloat(copertiChange) >= 0 ? '+' : ''}${copertiChange}%</span> vs settimana precedente)`;
+            }
+            commentary += ` con uno scontrino medio di <span class="commentary-highlight">${formatCurrency2(scontrino)}</span>`;
+            if (scontrinoChange !== null) {
+                const scontrinoClass = parseFloat(scontrinoChange) >= 0 ? 'commentary-positive' : 'commentary-negative';
+                commentary += ` (<span class="${scontrinoClass}">${parseFloat(scontrinoChange) >= 0 ? '+' : ''}${scontrinoChange}%</span>)`;
+            }
+            commentary += `.</p>`;
+
+            // 3. Best performers
+            if (bestStores.length > 0) {
+                commentary += `<p><strong>🏆 Top performer:</strong> `;
+                const bestList = bestStores.map(s => `${s.name} (<span class="commentary-positive">+${parseFloat(s.deltaBudgetPct).toFixed(1)}%</span>)`).join(', ');
+                commentary += `${bestList}.</p>`;
+            }
+
+            // 4. Stores that need attention
+            if (worstStores.length > 0) {
+                commentary += `<p><strong>⚠️ Punti vendita da monitorare:</strong> `;
+                const worstList = worstStores.map(s => `${s.name} (<span class="commentary-negative">${parseFloat(s.deltaBudgetPct).toFixed(1)}%</span>)`).join(', ');
+                commentary += `${worstList}.</p>`;
+            }
+
+            // 5. Delivery performance
+            if (totalDeliveryGMV > 0) {
+                commentary += `<p><strong>🛵 Delivery:</strong> GMV totale di <span class="commentary-highlight">${formatCurrency(totalDeliveryGMV)}</span> con ${formatNumber(totalDeliveryOrders)} ordini. `;
+
+                // Find dominant platform
+                const platforms = [
+                    { name: 'Glovo', gmv: glovoWeekData?.gmv || 0 },
+                    { name: 'Deliveroo', gmv: deliverooWeekData?.gmv || 0 },
+                    { name: 'Just Eat', gmv: justeatWeekData?.gmv || 0 }
+                ].filter(p => p.gmv > 0).sort((a, b) => b.gmv - a.gmv);
+
+                if (platforms.length > 0) {
+                    const dominant = platforms[0];
+                    const pct = ((dominant.gmv / totalDeliveryGMV) * 100).toFixed(0);
+                    commentary += `${dominant.name} rappresenta il ${pct}% del totale delivery.</p>`;
+                } else {
+                    commentary += `</p>`;
+                }
+            }
+
+            // 6. Reviews and NPS
+            if (totalRecensioni > 0 || chainSondaggio.count > 0) {
+                commentary += `<p><strong>⭐ Customer Feedback:</strong> `;
+                if (totalRecensioni > 0) {
+                    commentary += `${totalRecensioni} nuove recensioni ricevute. `;
+                }
+                if (chainSondaggio.count > 0) {
+                    const npsClass = chainSondaggio.nps >= 50 ? 'commentary-positive' : chainSondaggio.nps >= 0 ? 'commentary-highlight' : 'commentary-negative';
+                    commentary += `NPS score: <span class="${npsClass}">${chainSondaggio.nps}</span> (${chainSondaggio.count} risposte, ${chainSondaggio.promoters} promotori, ${chainSondaggio.detractors} detrattori).`;
+                }
+                commentary += `</p>`;
+            }
+
+            div.innerHTML = `
+                <div class="commentary-header">
+                    <h3>📊 Executive Summary</h3>
+                    <span class="week-badge">Week ${selectedWeek}</span>
+                </div>
+                <div class="commentary-content">
+                    ${commentary}
+                </div>
+            `;
+
+            return div;
+        }
+
+        function renderChainAnalysis() {
+            const section = document.createElement('div');
+            section.className = 'analysis-section';
+
+            const kpis = fatturatoData.kpis || {};
+            const prevKpis = previousWeekData?.kpis || {};
+
+            // Calculate week-over-week changes
+            const scontrinoChange = prevKpis.scontrinoMedio
+                ? ((parseFloat(kpis.scontrinoMedio) - parseFloat(prevKpis.scontrinoMedio)) / parseFloat(prevKpis.scontrinoMedio) * 100).toFixed(1)
+                : null;
+            const copertiChange = prevKpis.coperti
+                ? ((kpis.coperti - prevKpis.coperti) / prevKpis.coperti * 100).toFixed(1)
+                : null;
+
+            // Get delivery platform data for this week (chain level)
+            const glovoWeekData = getGlovoChainData(selectedWeek);
+            const deliverooWeekData = getDeliverooChainData(selectedWeek);
+            const justeatWeekData = getJustEatChainData(selectedWeek);
+
+            // Get reviews for this week (chain level)
+            const chainRecensioni = getChainRecensioni(selectedWeek);
+            const chainSondaggio = getChainSondaggio(selectedWeek);
+
+            section.innerHTML = `
+                <div class="section-header">
+                    <h2>🏢 Analisi Catena</h2>
+                    <span class="badge chain">Settimana ${selectedWeek}</span>
+                </div>
+
+                <!-- Fatturato -->
+                <div class="subsection">
+                    <div class="subsection-title">Fatturato</div>
+                    <div class="kpi-grid">
+                        <div class="kpi-card clickable-data" onclick="openTrendModal('fatturato_netto', 'Fatturato Netto')">
+                            <h3>Fatturato Netto</h3>
+                            <div class="value">${formatCurrency(kpis.fatturatoNetto)}</div>
+                            <div class="delta ${parseFloat(kpis.deltaBudgetPct) >= 0 ? 'positive' : 'negative'}">
+                                ${parseFloat(kpis.deltaBudgetPct) >= 0 ? '+' : ''}${kpis.deltaBudgetPct}% vs Budget
+                            </div>
+                        </div>
+                        <div class="kpi-card clickable-data" onclick="openTrendModal('fatturato_netto', 'Fatturato vs Anno Precedente')">
+                            <h3>vs Anno Precedente</h3>
+                            <div class="value">${formatCurrency(kpis.nettoAP)}</div>
+                            <div class="delta ${parseFloat(kpis.deltaAnnoPct) >= 0 ? 'positive' : 'negative'}">
+                                ${parseFloat(kpis.deltaAnnoPct) >= 0 ? '+' : ''}${kpis.deltaAnnoPct}% YoY
+                            </div>
+                        </div>
+                        <div class="kpi-card clickable-data" onclick="openTrendModal('fatturato_budget', 'Budget')">
+                            <h3>Budget</h3>
+                            <div class="value">${formatCurrency(kpis.budget)}</div>
+                            <div class="delta neutral">Target settimanale</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scontrino Medio -->
+                <div class="subsection">
+                    <div class="subsection-title">Scontrino Medio</div>
+                    <div class="kpi-grid">
+                        <div class="kpi-card clickable-data" onclick="openTrendModal('scontrino', 'Scontrino Medio')">
+                            <h3>Scontrino Medio</h3>
+                            <div class="value">${formatCurrency2(parseFloat(kpis.scontrinoMedio))}</div>
+                            ${scontrinoChange !== null ? `
+                                <div class="delta ${parseFloat(scontrinoChange) >= 0 ? 'positive' : 'negative'}">
+                                    ${parseFloat(scontrinoChange) >= 0 ? '+' : ''}${scontrinoChange}% vs settimana precedente
+                                </div>
+                            ` : '<div class="delta neutral">Prima settimana</div>'}
+                        </div>
+                        <div class="kpi-card clickable-data" onclick="openTrendModal('coperti', 'Coperti Totali')">
+                            <h3>Coperti Totali</h3>
+                            <div class="value">${formatNumber(kpis.coperti)}</div>
+                            ${copertiChange !== null ? `
+                                <div class="delta ${parseFloat(copertiChange) >= 0 ? 'positive' : 'negative'}">
+                                    ${parseFloat(copertiChange) >= 0 ? '+' : ''}${copertiChange}% vs settimana precedente
+                                </div>
+                            ` : '<div class="delta neutral">Prima settimana</div>'}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Channel Mix -->
+                <div class="subsection">
+                    <div class="subsection-title">Composizione Fatturato per Canale</div>
+                    <div class="channel-mix">
+                        <div class="channel-bar">
+                            ${renderChannelBar(kpis.mixCanali)}
+                        </div>
+                        <div class="channel-legend">
+                            <div class="legend-item"><div class="legend-dot" style="background: #3B82F6;"></div> Store ${(kpis.mixCanali?.store || 0).toFixed(1)}%</div>
+                            <div class="legend-item"><div class="legend-dot" style="background: #8B5CF6;"></div> Asporto ${(kpis.mixCanali?.asporto || 0).toFixed(1)}%</div>
+                            <div class="legend-item"><div class="legend-dot" style="background: #FFC244;"></div> Glovo ${(kpis.mixCanali?.glovo || 0).toFixed(1)}%</div>
+                            <div class="legend-item"><div class="legend-dot" style="background: #00CCBC;"></div> Deliveroo ${(kpis.mixCanali?.deliveroo || 0).toFixed(1)}%</div>
+                            <div class="legend-item"><div class="legend-dot" style="background: #FF8000;"></div> Just Eat ${(kpis.mixCanali?.justEat || 0).toFixed(1)}%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recensioni -->
+                <div class="subsection">
+                    <div class="subsection-title">Recensioni</div>
+                    <div class="review-summary">
+                        ${renderReviewCard('Google', chainRecensioni.google, '🔍', 'recensioni_google')}
+                        ${renderReviewCard('TripAdvisor', chainRecensioni.tripadvisor, '🦉', 'recensioni_tripadvisor')}
+                        ${renderReviewCard('TheFork', chainRecensioni.thefork, '🍴', 'recensioni_thefork')}
+                        ${renderSondaggioCard(chainSondaggio, null)}
+                    </div>
+                </div>
+
+                <!-- Delivery -->
+                <div class="subsection">
+                    <div class="subsection-title">Delivery Performance</div>
+                    <div class="delivery-summary">
+                        ${renderDeliveryPlatform('Glovo', glovoWeekData, null)}
+                        ${renderDeliveryPlatform('Deliveroo', deliverooWeekData, null)}
+                        ${renderDeliveryPlatform('Just Eat', justeatWeekData, null)}
+                    </div>
+                </div>
+            `;
+
+            return section;
+        }
+
+        function renderStoreAnalysis(store) {
+            const section = document.createElement('div');
+            section.className = 'analysis-section';
+
+            // Get store-specific delivery data
+            const storeGlovo = getStoreGlovoData(store.name, selectedWeek);
+            const storeDeliveroo = getStoreDeliverooData(store.name, selectedWeek);
+            const storeJusteat = getStoreJustEatData(store.name, selectedWeek);
+
+            // Get store-specific reviews
+            const storeRecensioni = getStoreRecensioni(store.name, selectedWeek);
+
+            // Get store-specific sondaggio NPS
+            const storeSondaggioData = getStoreSondaggio(store.name, selectedWeek);
+
+            // Calculate scontrino medio for store
+            const scontrinoMedio = store.coperti > 0 ? (store.netto * (store.pctStore || 0.5) / store.coperti) : 0;
+
+            // Escape store name for onclick handlers
+            const escapedStoreName = store.name.replace(/'/g, "\\'");
+
+            section.innerHTML = `
+                <div class="section-header">
+                    <h2>🏪 ${store.name}</h2>
+                    <span class="badge store">${store.city}</span>
+                </div>
+
+                <!-- Fatturato Store -->
+                <div class="subsection">
+                    <div class="subsection-title">Fatturato</div>
+                    <div class="mini-grid">
+                        <div class="mini-card clickable-data" onclick="openTrendModal('fatturato_netto', 'Fatturato Netto', '${escapedStoreName}')">
+                            <div class="label">Netto</div>
+                            <div class="value">${formatCurrency(store.netto)}</div>
+                            <div class="sub ${parseFloat(store.deltaBudgetPct) >= 0 ? 'positive' : 'negative'}">${parseFloat(store.deltaBudgetPct) >= 0 ? '+' : ''}${store.deltaBudgetPct}% Budget</div>
+                        </div>
+                        <div class="mini-card clickable-data" onclick="openTrendModal('fatturato_budget', 'Budget', '${escapedStoreName}')">
+                            <div class="label">YoY</div>
+                            <div class="value">${formatCurrency(store.nettoAP)}</div>
+                            <div class="sub ${parseFloat(store.deltaAnnoPct) >= 0 ? 'positive' : 'negative'}">${parseFloat(store.deltaAnnoPct) >= 0 ? '+' : ''}${store.deltaAnnoPct}%</div>
+                        </div>
+                        <div class="mini-card clickable-data" onclick="openTrendModal('coperti', 'Coperti', '${escapedStoreName}')">
+                            <div class="label">Coperti</div>
+                            <div class="value">${formatNumber(store.coperti)}</div>
+                        </div>
+                        <div class="mini-card clickable-data" onclick="openTrendModal('scontrino', 'Scontrino Medio', '${escapedStoreName}')">
+                            <div class="label">Scontrino</div>
+                            <div class="value">${formatCurrency2(parseFloat(store.scontrinoMedio))}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivery Store -->
+                <div class="subsection">
+                    <div class="subsection-title">Delivery</div>
+                    <div class="mini-grid">
+                        ${storeGlovo.orders > 0 || storeGlovo.gmv > 0 ? `
+                            <div class="mini-card clickable-data" style="border-left: 3px solid #FFC244;" onclick="openTrendModal('glovo_gmv', 'Glovo GMV', '${escapedStoreName}')">
+                                <div class="label">Glovo</div>
+                                <div class="value">${formatCurrency(storeGlovo.gmv)}</div>
+                                <div class="sub">${storeGlovo.orders} ordini</div>
+                            </div>
+                        ` : ''}
+                        ${storeDeliveroo.orders > 0 || storeDeliveroo.gmv > 0 ? `
+                            <div class="mini-card clickable-data" style="border-left: 3px solid #00CCBC;" onclick="openTrendModal('deliveroo_gmv', 'Deliveroo GMV', '${escapedStoreName}')">
+                                <div class="label">Deliveroo</div>
+                                <div class="value">${formatCurrency(storeDeliveroo.gmv)}</div>
+                                <div class="sub">${storeDeliveroo.orders} ordini</div>
+                            </div>
+                        ` : ''}
+                        ${storeJusteat.orders > 0 || storeJusteat.gmv > 0 ? `
+                            <div class="mini-card clickable-data" style="border-left: 3px solid #FF8000;" onclick="openTrendModal('justeat_gmv', 'Just Eat GMV', '${escapedStoreName}')">
+                                <div class="label">Just Eat</div>
+                                <div class="value">${formatCurrency(storeJusteat.gmv)}</div>
+                                <div class="sub">${storeJusteat.orders} ordini</div>
+                            </div>
+                        ` : ''}
+                        ${(storeGlovo.orders === 0 && storeGlovo.gmv === 0) && (storeDeliveroo.orders === 0 && storeDeliveroo.gmv === 0) && (storeJusteat.orders === 0 && storeJusteat.gmv === 0) ? `
+                            <div class="mini-card">
+                                <div class="label">Delivery</div>
+                                <div class="value">-</div>
+                                <div class="sub">Nessun dato</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <!-- Recensioni Store -->
+                ${storeRecensioni.total > 0 ? `
+                    <div class="subsection">
+                        <div class="subsection-title">Recensioni</div>
+                        <div class="mini-grid">
+                            <div class="mini-card clickable-data" onclick="openTrendModal('store_recensioni', 'Recensioni', '${escapedStoreName}')">
+                                <div class="label">Totale</div>
+                                <div class="value">${storeRecensioni.total}</div>
+                            </div>
+                            <div class="mini-card">
+                                <div class="label">Voto Medio</div>
+                                <div class="value">${storeRecensioni.avgRating.toFixed(1)}</div>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+
+                <!-- Sondaggio NPS Store -->
+                ${storeSondaggioData.count > 0 ? `
+                    <div class="subsection">
+                        <div class="subsection-title">Sondaggio NPS</div>
+                        <div class="mini-grid">
+                            <div class="mini-card clickable-data" onclick="openTrendModal('sondaggio_count', 'Risposte Sondaggio', '${escapedStoreName}')">
+                                <div class="label">Risposte</div>
+                                <div class="value">${storeSondaggioData.count}</div>
+                            </div>
+                            <div class="mini-card clickable-data" onclick="openTrendModal('sondaggio_nps', 'NPS Score', '${escapedStoreName}')">
+                                <div class="label">NPS Score</div>
+                                <div class="value" style="color: ${storeSondaggioData.nps >= 50 ? '#059669' : storeSondaggioData.nps >= 0 ? '#6B7280' : '#DC2626'}">${storeSondaggioData.nps}</div>
+                            </div>
+                            <div class="mini-card">
+                                <div class="label">Promotori</div>
+                                <div class="value" style="color: #059669">${storeSondaggioData.promoters}</div>
+                            </div>
+                            <div class="mini-card">
+                                <div class="label">Detrattori</div>
+                                <div class="value" style="color: #DC2626">${storeSondaggioData.detractors}</div>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+
+            return section;
+        }
+
+        // ===== Helper Functions =====
+        function formatCurrency(value) {
+            if (!value || isNaN(value)) return '€0';
+            return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
+        }
+
+        function formatCurrency2(value) {
+            if (!value || isNaN(value)) return '€0,00';
+            return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+        }
+
+        function formatNumber(value) {
+            if (!value || isNaN(value)) return '0';
+            return new Intl.NumberFormat('it-IT').format(value);
+        }
+
+        // Helper: extract week number from various formats
+        function extractWeekNumber(weekStr) {
+            if (!weekStr) return null;
+            const str = String(weekStr);
+            // Format: "2025-W45" or "W45" or "45"
+            const match = str.match(/W?(\d+)$/);
+            return match ? parseInt(match[1]) : parseInt(str) || null;
+        }
+
+        // Helper: calculate ISO week from date
+        function getWeekFromDate(dateVal) {
+            if (!dateVal) return null;
+            let d;
+
+            // Handle Excel serial date number
+            if (typeof dateVal === 'number') {
+                d = new Date((dateVal - 25569) * 86400 * 1000);
+            } else if (typeof dateVal === 'string') {
+                if (dateVal.includes('/')) {
+                    // DD/MM/YYYY format
+                    const parts = dateVal.split('/');
+                    if (parts.length === 3) {
+                        const day = parseInt(parts[0], 10);
+                        const month = parseInt(parts[1], 10) - 1;
+                        const year = parseInt(parts[2], 10);
+                        d = new Date(year, month, day);
+                    }
+                } else {
+                    d = new Date(dateVal);
+                }
+            } else {
+                d = new Date(dateVal);
+            }
+
+            if (!d || isNaN(d.getTime())) return null;
+
+            // ISO week calculation
+            const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            const dayNum = (tmp.getUTCDay() + 6) % 7;
+            tmp.setUTCDate(tmp.getUTCDate() - dayNum + 3);
+            const isoYear = tmp.getUTCFullYear();
+            const firstThursday = new Date(Date.UTC(isoYear, 0, 4));
+            const week = 1 + Math.round(((tmp - firstThursday) / 86400000 - 3 + ((firstThursday.getUTCDay() + 6) % 7)) / 7);
+            return week;
+        }
+
+        // Helper: extract year from date
+        function getYearFromDate(dateVal) {
+            if (!dateVal) return null;
+
+            // Handle Excel serial date number
+            if (typeof dateVal === 'number') {
+                const d = new Date((dateVal - 25569) * 86400 * 1000);
+                return d.getFullYear();
+            }
+
+            const str = String(dateVal);
+            if (str.includes('/')) {
+                // DD/MM/YYYY format
+                const parts = str.split('/');
+                return parts.length === 3 ? parseInt(parts[2], 10) : null;
+            } else if (str.includes('-')) {
+                // YYYY-MM-DD format
+                return parseInt(str.split('-')[0], 10);
+            }
+            return null;
+        }
+
+        // Store ID to Name mapping for Sondaggio
+        const SONDAGGIO_STORE_MAP = {
+            '129':'FDV ALESSANDRIA','122':'FDV ARESE','106':'FDV BOLOGNA S.STEFANO','135':'FDV BRESCIA CENTRO',
+            '118':'FDV BRESCIA ELNOS','134':'FDV ASTI','136':'FDV TORINO SAN SALVARIO','101':'FDV GENOVA CASTELLO',
+            '128':'FDV GENOVA MARE','125':'FDV MILANO BICOCCA','121':'FDV MILANO CITYLIFE','120':'FDV MILANO ISOLA',
+            '131':'FDV MILANO PORTA VENEZIA','127':'FDV MILANO PREMUDA','113':'FDV MILANO SEMPIONE','132':'FDV MODENA',
+            '126':'FDV MONZA','112':'FDV NOVARA','124':'FDV PARMA','137':'FDV RIMINI','202':'FDV RIVOLI',
+            '133':'FDV ROMA OSTIENSE','107':'FDV ROMA PARIOLI','138':'FDV ROMA TRASTEVERE','114':'FDV TORINO CARLINA',
+            '117':'FDV TORINO GM','123':'FDV TORINO IV MARZO','201':'FDV TORINO SAN SALVARIO','130':'FDV TORINO VANCHIGLIA',
+            '119':'FDV VARESE','10001':'FDV CASALECCHIO','301':'FDV CAGLIARI'
+        };
+
+        function mapSondaggioStore(storeId) {
+            const id = String(storeId ?? '').trim();
+            return SONDAGGIO_STORE_MAP[id] || id;
+        }
+
+        function renderChannelBar(mix) {
+            if (!mix) return '';
+            const channels = [
+                { name: 'store', value: mix.store || 0, class: 'store' },
+                { name: 'asporto', value: mix.asporto || 0, class: 'asporto' },
+                { name: 'glovo', value: mix.glovo || 0, class: 'glovo' },
+                { name: 'deliveroo', value: mix.deliveroo || 0, class: 'deliveroo' },
+                { name: 'justeat', value: mix.justEat || 0, class: 'justeat' }
+            ];
+            return channels
+                .filter(c => c.value > 0)
+                .map(c => `<div class="channel-segment ${c.class}" style="width: ${c.value}%;">${c.value.toFixed(0)}%</div>`)
+                .join('');
+        }
+
+        function renderReviewCard(platform, data, emoji = '', metricType = null, storeName = null) {
+            const count = data?.count || 0;
+            const avgRating = data?.avgRating || 0;
+            const clickHandler = metricType ? `onclick="openTrendModal('${metricType}', '${platform}', ${storeName ? `'${storeName}'` : 'null'})"` : '';
+            const clickableClass = metricType ? 'clickable-data' : '';
+            return `
+                <div class="review-card ${clickableClass}" ${clickHandler}>
+                    <div class="platform">${emoji} ${platform}</div>
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="num">${count}</div>
+                            <div class="lbl">Recensioni</div>
+                        </div>
+                        <div class="stat">
+                            <div class="num">${avgRating > 0 ? avgRating.toFixed(1) : '-'}</div>
+                            <div class="lbl">Voto Medio</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSondaggioCard(data, storeName = null) {
+            const count = data?.count || 0;
+            const nps = data?.nps || 0;
+            const promoters = data?.promoters || 0;
+            const detractors = data?.detractors || 0;
+            const neutrals = data?.neutrals || 0;
+            const npsClass = nps >= 50 ? 'positive' : nps >= 0 ? 'neutral' : 'negative';
+            const clickHandler = `onclick="openTrendModal('sondaggio_nps', 'Sondaggio NPS', ${storeName ? `'${storeName}'` : 'null'})"`;
+            return `
+                <div class="review-card clickable-data" ${clickHandler}>
+                    <div class="platform">📋 Sondaggio NPS</div>
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="num">${count}</div>
+                            <div class="lbl">Risposte</div>
+                        </div>
+                        <div class="stat">
+                            <div class="num" style="color: ${nps >= 50 ? '#059669' : nps >= 0 ? '#6B7280' : '#DC2626'}">${nps}</div>
+                            <div class="lbl">NPS Score</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px; font-size: 11px; color: #6B7280;">
+                        <span style="color: #059669;">P: ${promoters}</span>
+                        <span>N: ${neutrals}</span>
+                        <span style="color: #DC2626;">D: ${detractors}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderDeliveryPlatform(name, data, storeName = null) {
+            const logoClass = name.toLowerCase();
+            const hasData = data && (data.gmv > 0 || data.orders > 0);
+            const platformKey = name.toLowerCase().replace(' ', '');
+            const gmvMetric = `${platformKey}_gmv`;
+            const clickHandler = `onclick="openTrendModal('${gmvMetric}', '${name} GMV', ${storeName ? `'${storeName}'` : 'null'})"`;
+            return `
+                <div class="delivery-platform clickable-data" ${clickHandler}>
+                    <div class="header">
+                        <div class="logo ${logoClass}">${name === 'Glovo' ? '🟡' : name === 'Deliveroo' ? '🔵' : '🟠'}</div>
+                        <div class="name">${name}</div>
+                    </div>
+                    <div class="metrics">
+                        <div class="metric">
+                            <span class="label">GMV</span>
+                            <span class="value">${hasData ? formatCurrency(data.gmv) : '-'}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="label">Ordini</span>
+                            <span class="value">${hasData ? formatNumber(data.orders) : '-'}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="label">AOV</span>
+                            <span class="value">${hasData && data.aov > 0 ? formatCurrency(data.aov) : '-'}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="label">Rating</span>
+                            <span class="value">${data?.rating && data.rating > 0 ? data.rating.toFixed(1) : '-'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===== Data Extraction Functions =====
+
+        // Helper: match store name
+        function matchStoreName(platformName, searchName) {
+            const pName = (platformName || '').toUpperCase();
+            const sName = (searchName || '').toUpperCase();
+            const pShort = pName.replace('FDV ', '').replace('FRA DIAVOLO ', '').trim();
+            const sShort = sName.replace('FDV ', '').replace('FRA DIAVOLO ', '').trim();
+            return pShort.includes(sShort) || sShort.includes(pShort);
+        }
+
+        // ===== CHAIN LEVEL DATA =====
+        function getGlovoChainData(week) {
+            if (!glovoData?.stores) return { gmv: 0, orders: 0, aov: 0, rating: 0 };
+
+            let totalGmv = 0, totalOrders = 0;
+            const ratings = [];
+
+            // Aggregate from all stores using timeSeries
+            if (glovoData.timeSeries) {
+                for (const storeId in glovoData.timeSeries) {
+                    if (storeId === '_total') continue;
+                    const storeTimeSeries = glovoData.timeSeries[storeId];
+                    if (!Array.isArray(storeTimeSeries)) continue;
+
+                    storeTimeSeries.forEach(entry => {
+                        const entryWeek = extractWeekNumber(entry.week);
+                        if (entryWeek === week) {
+                            totalGmv += entry.gmv || 0;
+                            // Glovo doesn't have orders in timeSeries, we need to estimate from store totals
+                        }
+                    });
+                }
+            }
+
+            // Get orders and rating from stores - estimate orders proportionally
+            glovoData.stores.forEach(store => {
+                if (store.rating && parseFloat(store.rating) > 0) ratings.push(parseFloat(store.rating));
+
+                // Estimate orders proportionally based on GMV share
+                if (glovoData.timeSeries && glovoData.timeSeries[store.id]) {
+                    const storeTimeSeries = glovoData.timeSeries[store.id];
+                    if (Array.isArray(storeTimeSeries)) {
+                        const weekEntry = storeTimeSeries.find(e => extractWeekNumber(e.week) === week);
+                        if (weekEntry && store.gmv > 0 && weekEntry.gmv > 0) {
+                            // Estimate orders for this week proportionally
+                            const storeOrders = parseInt(store.orders) || 0;
+                            totalOrders += Math.round((weekEntry.gmv / store.gmv) * storeOrders);
+                        }
+                    }
+                }
+            });
+
+            const avgRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+            const aov = totalOrders > 0 ? totalGmv / totalOrders : 0;
+
+            return { gmv: totalGmv, orders: totalOrders, aov, rating: avgRating };
+        }
+
+        function getDeliverooChainData(week) {
+            if (!deliverooData?.stores) return { gmv: 0, orders: 0, aov: 0, rating: 0 };
+
+            let totalGmv = 0, totalOrders = 0;
+            const ratings = [];
+
+            // Aggregate from all stores using timeSeries
+            if (deliverooData.timeSeries) {
+                for (const storeName in deliverooData.timeSeries) {
+                    if (storeName === '_total') continue;
+                    const storeTimeSeries = deliverooData.timeSeries[storeName];
+                    if (!Array.isArray(storeTimeSeries)) continue;
+
+                    storeTimeSeries.forEach(entry => {
+                        const entryWeek = extractWeekNumber(entry.week);
+                        if (entryWeek === week) {
+                            totalGmv += entry.gmv || 0;
+                            totalOrders += entry.orders || 0;
+                        }
+                    });
+                }
+            }
+
+            // Get rating from stores
+            deliverooData.stores.forEach(store => {
+                const rating = parseFloat(store.avgRating) || 0;
+                if (rating > 0) ratings.push(rating);
+            });
+
+            const avgRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+            const aov = totalOrders > 0 ? totalGmv / totalOrders : 0;
+
+            return { gmv: totalGmv, orders: totalOrders, aov, rating: avgRating };
+        }
+
+        function getJustEatChainData(week) {
+            if (!justeatData?.stores) return { gmv: 0, orders: 0, aov: 0, rating: 0 };
+
+            let totalGmv = 0, totalOrders = 0;
+            const ratings = [];
+
+            // Aggregate from all stores using timeSeries
+            if (justeatData.timeSeries) {
+                for (const storeName in justeatData.timeSeries) {
+                    if (storeName === '_total') continue;
+                    const storeTimeSeries = justeatData.timeSeries[storeName];
+                    if (!Array.isArray(storeTimeSeries)) continue;
+
+                    storeTimeSeries.forEach(entry => {
+                        const entryWeek = extractWeekNumber(entry.week);
+                        if (entryWeek === week) {
+                            totalGmv += entry.gmv || 0;
+                            totalOrders += entry.orders || 0;
+                        }
+                    });
+                }
+            }
+
+            // Get rating from stores
+            justeatData.stores.forEach(store => {
+                const rating = parseFloat(store.avgRating) || 0;
+                if (rating > 0) ratings.push(rating);
+            });
+
+            const avgRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+            const aov = totalOrders > 0 ? totalGmv / totalOrders : 0;
+
+            return { gmv: totalGmv, orders: totalOrders, aov, rating: avgRating };
+        }
+
+        function getChainRecensioni(week) {
+            const result = {
+                google: { count: 0, avgRating: 0, sum: 0 },
+                tripadvisor: { count: 0, avgRating: 0, sum: 0 },
+                thefork: { count: 0, avgRating: 0, sum: 0 }
+            };
+
+            if (!recensioniData?.data) return result;
+
+            recensioniData.data.forEach(r => {
+                // Filter by week if provided
+                const reviewDate = r.data || r.date || '';
+                const reviewWeek = getWeekFromDate(reviewDate);
+                if (week && reviewWeek && reviewWeek !== week) return;
+
+                const sourceFrom = (r.sourcefrom || r.source || r.piattaforma || '').toLowerCase();
+                const voto = parseFloat(r.voto) || 0;
+                if (voto <= 0) return;
+
+                if (sourceFrom.includes('google') || sourceFrom.includes('mybusiness')) {
+                    result.google.count++;
+                    result.google.sum += voto;
+                } else if (sourceFrom.includes('tripadvisor') || sourceFrom.includes('trip')) {
+                    result.tripadvisor.count++;
+                    result.tripadvisor.sum += voto;
+                } else if (sourceFrom.includes('thefork') || sourceFrom.includes('fork')) {
+                    result.thefork.count++;
+                    result.thefork.sum += voto;
+                }
+            });
+
+            // Calculate averages
+            for (const key in result) {
+                if (result[key].count > 0) {
+                    result[key].avgRating = result[key].sum / result[key].count;
+                }
+            }
+
+            return result;
+        }
+
+        function getChainSondaggio(week) {
+            if (!sondaggioData?.data) return { count: 0, nps: 0, promoters: 0, detractors: 0, neutrals: 0 };
+
+            let promoters = 0, detractors = 0, neutrals = 0;
+
+            sondaggioData.data.forEach(s => {
+                const sondaggioDate = s.data || s.date || '';
+
+                // Filter only 2025 data
+                const year = getYearFromDate(sondaggioDate);
+                if (year !== 2025) return;
+
+                // Filter by week
+                const sondaggioWeek = getWeekFromDate(sondaggioDate);
+                if (week && sondaggioWeek !== week) return;
+
+                // NPS score is in "probabilità" column (0-10 scale)
+                const score = parseInt(s.probabilità);
+                if (isNaN(score)) return;
+
+                if (score >= 9 && score <= 10) promoters++;
+                else if (score >= 0 && score <= 6) detractors++;
+                else if (score >= 7 && score <= 8) neutrals++;
+            });
+
+            const total = promoters + detractors + neutrals;
+            const nps = total > 0 ? Math.round(((promoters - detractors) / total) * 100) : 0;
+
+            return { count: total, nps, promoters, detractors, neutrals };
+        }
+
+        function getStoreSondaggio(storeName, week) {
+            if (!sondaggioData?.data) return { count: 0, nps: 0, promoters: 0, detractors: 0, neutrals: 0 };
+
+            let promoters = 0, detractors = 0, neutrals = 0;
+
+            sondaggioData.data.forEach(s => {
+                const sondaggioDate = s.data || s.date || '';
+
+                // Filter only 2025 data
+                const year = getYearFromDate(sondaggioDate);
+                if (year !== 2025) return;
+
+                // Filter by week
+                const sondaggioWeek = getWeekFromDate(sondaggioDate);
+                if (week && sondaggioWeek !== week) return;
+
+                // Map store ID to store name and check if it matches
+                const storeId = s.store_id || s.storeid || '';
+                const mappedStore = mapSondaggioStore(storeId);
+                if (!matchStoreName(mappedStore, storeName)) return;
+
+                // NPS score is in "probabilità" column (0-10 scale)
+                const score = parseInt(s.probabilità);
+                if (isNaN(score)) return;
+
+                if (score >= 9 && score <= 10) promoters++;
+                else if (score >= 0 && score <= 6) detractors++;
+                else if (score >= 7 && score <= 8) neutrals++;
+            });
+
+            const total = promoters + detractors + neutrals;
+            const nps = total > 0 ? Math.round(((promoters - detractors) / total) * 100) : 0;
+
+            return { count: total, nps, promoters, detractors, neutrals };
+        }
+
+        // ===== STORE LEVEL DATA =====
+        function getStoreGlovoData(storeName, week) {
+            if (!glovoData?.stores) return { gmv: 0, orders: 0 };
+
+            // Find matching store
+            const store = glovoData.stores.find(s => matchStoreName(s.name, storeName));
+            if (!store) return { gmv: 0, orders: 0 };
+
+            let gmv = 0, orders = 0;
+
+            // Get data from timeSeries for this week
+            if (glovoData.timeSeries && glovoData.timeSeries[store.id]) {
+                const storeTimeSeries = glovoData.timeSeries[store.id];
+                if (Array.isArray(storeTimeSeries)) {
+                    const weekEntry = storeTimeSeries.find(e => extractWeekNumber(e.week) === week);
+                    if (weekEntry) {
+                        gmv = weekEntry.gmv || 0;
+                        // Estimate orders proportionally
+                        const storeGmv = parseFloat(store.gmv) || 0;
+                        const storeOrders = parseInt(store.orders) || 0;
+                        if (storeGmv > 0) {
+                            orders = Math.round((gmv / storeGmv) * storeOrders);
+                        }
+                    }
+                }
+            }
+
+            return { gmv, orders };
+        }
+
+        function getStoreDeliverooData(storeName, week) {
+            if (!deliverooData?.stores) return { gmv: 0, orders: 0 };
+
+            // Find matching store
+            const store = deliverooData.stores.find(s => matchStoreName(s.storeName, storeName));
+            if (!store) return { gmv: 0, orders: 0 };
+
+            let gmv = 0, orders = 0;
+            const originalName = store.originalStoreName || store.storeName;
+
+            // Get data from timeSeries for this week
+            if (deliverooData.timeSeries && deliverooData.timeSeries[originalName]) {
+                const storeTimeSeries = deliverooData.timeSeries[originalName];
+                if (Array.isArray(storeTimeSeries)) {
+                    const weekEntry = storeTimeSeries.find(e => extractWeekNumber(e.week) === week);
+                    if (weekEntry) {
+                        gmv = weekEntry.gmv || 0;
+                        orders = weekEntry.orders || 0;
+                    }
+                }
+            }
+
+            return { gmv, orders };
+        }
+
+        function getStoreJustEatData(storeName, week) {
+            if (!justeatData?.stores) return { gmv: 0, orders: 0 };
+
+            // Find matching store
+            const store = justeatData.stores.find(s => matchStoreName(s.storeName, storeName));
+            if (!store) return { gmv: 0, orders: 0 };
+
+            let gmv = 0, orders = 0;
+            const originalName = store.originalStoreName || store.storeName;
+
+            // Get data from timeSeries for this week
+            if (justeatData.timeSeries && justeatData.timeSeries[originalName]) {
+                const storeTimeSeries = justeatData.timeSeries[originalName];
+                if (Array.isArray(storeTimeSeries)) {
+                    const weekEntry = storeTimeSeries.find(e => extractWeekNumber(e.week) === week);
+                    if (weekEntry) {
+                        gmv = weekEntry.gmv || 0;
+                        orders = weekEntry.orders || 0;
+                    }
+                }
+            }
+
+            return { gmv, orders };
+        }
+
+        function getStoreRecensioni(storeName, week) {
+            if (!recensioniData?.data) return { total: 0, avgRating: 0 };
+
+            // Filter only Google, TripAdvisor, TheFork (not delivery platforms)
+            const storeRecensioni = recensioniData.data.filter(r => {
+                const rStore = r.punto_vendita || r.store || '';
+                const source = (r.sourcefrom || r.source || '').toLowerCase();
+                const isRelevantPlatform = source.includes('google') || source.includes('mybusiness') || source.includes('trip') || source.includes('fork');
+                if (!matchStoreName(rStore, storeName) || !isRelevantPlatform) return false;
+
+                // Filter by week if provided
+                const reviewDate = r.data || r.date || '';
+                const reviewWeek = getWeekFromDate(reviewDate);
+                if (week && reviewWeek && reviewWeek !== week) return false;
+
+                return true;
+            });
+
+            const total = storeRecensioni.length;
+            const ratings = storeRecensioni.map(r => parseFloat(r.voto)).filter(r => r > 0);
+            const avgRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+
+            return { total, avgRating };
+        }
+
+        // ===== UI Functions =====
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('open');
+        }
+
+        function toggleAvatarDropdown() {
+            document.getElementById('avatarDropdown').classList.toggle('show');
+        }
+
+        function logout() {
+            sessionStorage.removeItem('fradiavolo_logged');
+            sessionStorage.removeItem('fradiavolo_username');
+            sessionStorage.removeItem('fradiavolo_pages');
+            window.location.href = 'login.html';
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.avatar-container')) {
+                document.getElementById('avatarDropdown').classList.remove('show');
+            }
+        });
+
+        // ===== TREND MODAL FUNCTIONS =====
+        function openTrendModal(metricType, metricName, storeName = null) {
+            const modal = document.getElementById('trendModal');
+            const title = document.getElementById('trendModalTitle');
+            const body = document.getElementById('trendModalBody');
+
+            const storeLabel = storeName ? ` - ${storeName}` : ' - Catena';
+            title.innerHTML = `📈 ${metricName}${storeLabel}`;
+
+            const trendData = getTrendData(metricType, storeName);
+            body.innerHTML = renderTrendContent(trendData, metricType);
+
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeTrendModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            const modal = document.getElementById('trendModal');
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        // Get available weeks from global variable (set during loadWeeks)
+        function getAvailableWeeks() {
+            // First try heatmap weeks (most reliable)
+            if (heatmapData?.weeks && heatmapData.weeks.length > 0) {
+                return heatmapData.weeks.map(w => parseInt(w)).sort((a, b) => a - b);
+            }
+
+            // Then try availableWeeks global
+            if (availableWeeks.length > 0) return availableWeeks;
+
+            // Fallback: Try to extract from full data
+            const weeks = fatturatoFullData?.filters?.weeks || fatturatoFullData?.weeks || [];
+            if (weeks.length > 0) {
+                return weeks.map(w => parseInt(w)).sort((a, b) => a - b);
+            }
+
+            return [];
+        }
+
+        // Get trend data for different metrics
+        function getTrendData(metricType, storeName = null) {
+            const weeks = getAvailableWeeks();
+            const data = [];
+
+            weeks.forEach(week => {
+                let value = 0;
+                let label = `W${week}`;
+
+                switch (metricType) {
+                    case 'fatturato_netto':
+                        value = storeName ? getStoreFatturato(storeName, week) : getChainFatturato(week);
+                        break;
+                    case 'fatturato_budget':
+                        value = storeName ? getStoreBudget(storeName, week) : getChainBudget(week);
+                        break;
+                    case 'coperti':
+                        value = storeName ? getStoreCoperti(storeName, week) : getChainCoperti(week);
+                        break;
+                    case 'scontrino':
+                        value = storeName ? getStoreScontrino(storeName, week) : getChainScontrino(week);
+                        break;
+                    case 'glovo_gmv':
+                        const glovoData = storeName ? getStoreGlovoData(storeName, week) : getGlovoChainData(week);
+                        value = glovoData.gmv;
+                        break;
+                    case 'glovo_orders':
+                        const glovoOrders = storeName ? getStoreGlovoData(storeName, week) : getGlovoChainData(week);
+                        value = glovoOrders.orders;
+                        break;
+                    case 'deliveroo_gmv':
+                        const deliverooGmv = storeName ? getStoreDeliverooData(storeName, week) : getDeliverooChainData(week);
+                        value = deliverooGmv.gmv;
+                        break;
+                    case 'deliveroo_orders':
+                        const deliverooOrders = storeName ? getStoreDeliverooData(storeName, week) : getDeliverooChainData(week);
+                        value = deliverooOrders.orders;
+                        break;
+                    case 'justeat_gmv':
+                        const justeatGmv = storeName ? getStoreJustEatData(storeName, week) : getJustEatChainData(week);
+                        value = justeatGmv.gmv;
+                        break;
+                    case 'justeat_orders':
+                        const justeatOrders = storeName ? getStoreJustEatData(storeName, week) : getJustEatChainData(week);
+                        value = justeatOrders.orders;
+                        break;
+                    case 'recensioni_google':
+                        const googleRec = getChainRecensioni(week);
+                        value = googleRec.google.count;
+                        break;
+                    case 'recensioni_tripadvisor':
+                        const tripRec = getChainRecensioni(week);
+                        value = tripRec.tripadvisor.count;
+                        break;
+                    case 'recensioni_thefork':
+                        const forkRec = getChainRecensioni(week);
+                        value = forkRec.thefork.count;
+                        break;
+                    case 'sondaggio_nps':
+                        const sond = storeName ? getStoreSondaggio(storeName, week) : getChainSondaggio(week);
+                        value = sond.nps;
+                        break;
+                    case 'sondaggio_count':
+                        const sondCount = storeName ? getStoreSondaggio(storeName, week) : getChainSondaggio(week);
+                        value = sondCount.count;
+                        break;
+                    case 'store_recensioni':
+                        if (storeName) {
+                            const storeRec = getStoreRecensioni(storeName, week);
+                            value = storeRec.total;
+                        }
+                        break;
+                    default:
+                        value = 0;
+                }
+
+                data.push({ week, label, value, isCurrent: week === selectedWeek });
+            });
+
+            return data;
+        }
+
+        // Helper functions to get data by week (using heatmap rawData for trends)
+        // Note: week keys in rawData are strings like '1', '2', etc.
+        function getChainFatturato(week) {
+            if (!heatmapData?.rawData) return 0;
+            const weekKey = String(week);
+            let total = 0;
+            for (const storeName in heatmapData.rawData) {
+                const storeWeekData = heatmapData.rawData[storeName]?.[weekKey];
+                if (storeWeekData) {
+                    total += storeWeekData.netto || 0;
+                }
+            }
+            return total;
+        }
+
+        function getStoreFatturato(storeName, week) {
+            if (!heatmapData?.rawData) return 0;
+            const weekKey = String(week);
+            // Find matching store in heatmap data
+            for (const heatmapStoreName in heatmapData.rawData) {
+                if (matchStoreName(heatmapStoreName, storeName)) {
+                    return heatmapData.rawData[heatmapStoreName]?.[weekKey]?.netto || 0;
+                }
+            }
+            return 0;
+        }
+
+        function getChainBudget(week) {
+            if (!heatmapData?.rawData) return 0;
+            const weekKey = String(week);
+            let total = 0;
+            for (const storeName in heatmapData.rawData) {
+                const storeWeekData = heatmapData.rawData[storeName]?.[weekKey];
+                if (storeWeekData) {
+                    total += storeWeekData.budget || 0;
+                }
+            }
+            return total;
+        }
+
+        function getStoreBudget(storeName, week) {
+            if (!heatmapData?.rawData) return 0;
+            const weekKey = String(week);
+            for (const heatmapStoreName in heatmapData.rawData) {
+                if (matchStoreName(heatmapStoreName, storeName)) {
+                    return heatmapData.rawData[heatmapStoreName]?.[weekKey]?.budget || 0;
+                }
+            }
+            return 0;
+        }
+
+        function getChainCoperti(week) {
+            if (!heatmapData?.rawData) return 0;
+            const weekKey = String(week);
+            let total = 0;
+            for (const storeName in heatmapData.rawData) {
+                const storeWeekData = heatmapData.rawData[storeName]?.[weekKey];
+                if (storeWeekData) {
+                    total += storeWeekData.coperti || 0;
+                }
+            }
+            return total;
+        }
+
+        function getStoreCoperti(storeName, week) {
+            if (!heatmapData?.rawData) return 0;
+            const weekKey = String(week);
+            for (const heatmapStoreName in heatmapData.rawData) {
+                if (matchStoreName(heatmapStoreName, storeName)) {
+                    return heatmapData.rawData[heatmapStoreName]?.[weekKey]?.coperti || 0;
+                }
+            }
+            return 0;
+        }
+
+        function getChainScontrino(week) {
+            // Scontrino = Fatturato Store (not netto) / Coperti
+            if (!heatmapData?.rawData) return 0;
+            const weekKey = String(week);
+            let totalFatturatoStore = 0;
+            let totalCoperti = 0;
+            for (const storeName in heatmapData.rawData) {
+                const storeWeekData = heatmapData.rawData[storeName]?.[weekKey];
+                if (storeWeekData) {
+                    totalFatturatoStore += storeWeekData.fatturatoStore || 0;
+                    totalCoperti += storeWeekData.coperti || 0;
+                }
+            }
+            return totalCoperti > 0 ? totalFatturatoStore / totalCoperti : 0;
+        }
+
+        function getStoreScontrino(storeName, week) {
+            if (!heatmapData?.rawData) return 0;
+            const weekKey = String(week);
+            for (const heatmapStoreName in heatmapData.rawData) {
+                if (matchStoreName(heatmapStoreName, storeName)) {
+                    const data = heatmapData.rawData[heatmapStoreName]?.[weekKey];
+                    if (data && data.coperti > 0) {
+                        return (data.fatturatoStore || 0) / data.coperti;
+                    }
+                    return 0;
+                }
+            }
+            return 0;
+        }
+
+        // Render trend modal content
+        function renderTrendContent(data, metricType) {
+            if (!data || data.length === 0) {
+                return '<p style="text-align: center; color: #6B7280;">Nessun dato disponibile</p>';
+            }
+
+            const maxValue = Math.max(...data.map(d => Math.abs(d.value)));
+            const currentData = data.find(d => d.isCurrent);
+            const isCurrency = ['fatturato_netto', 'fatturato_budget', 'scontrino', 'glovo_gmv', 'deliveroo_gmv', 'justeat_gmv'].includes(metricType);
+            const isDecimal = metricType === 'scontrino';
+
+            // Format value based on type
+            const formatValue = (val) => {
+                if (isCurrency) {
+                    return isDecimal ? formatCurrency2(val) : formatCurrency(val);
+                }
+                return formatNumber(Math.round(val));
+            };
+
+            // Build chart
+            let chartHtml = '<div class="trend-chart">';
+            data.slice(-12).forEach(d => {
+                const height = maxValue > 0 ? Math.max(10, (Math.abs(d.value) / maxValue) * 160) : 10;
+                chartHtml += `
+                    <div class="trend-bar ${d.isCurrent ? 'current' : ''}" style="height: ${height}px;" title="${d.label}: ${formatValue(d.value)}">
+                        <span class="trend-bar-value">${isCurrency ? '' : Math.round(d.value)}</span>
+                        <span class="trend-bar-label">${d.label}</span>
+                    </div>
+                `;
+            });
+            chartHtml += '</div>';
+
+            // Build current value display
+            let currentHtml = '';
+            if (currentData) {
+                currentHtml = `
+                    <div class="trend-current">
+                        <div>
+                            <div class="trend-current-value">${formatValue(currentData.value)}</div>
+                            <div class="trend-current-label">Valore Settimana Selezionata</div>
+                            <div class="trend-current-week">W${currentData.week}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Build table
+            let tableHtml = `
+                <table class="trend-table">
+                    <thead>
+                        <tr>
+                            <th>Settimana</th>
+                            <th>Valore</th>
+                            <th>Δ vs Precedente</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            data.slice().reverse().forEach((d, idx, arr) => {
+                const prevData = arr[idx + 1];
+                let delta = null;
+                let deltaClass = '';
+
+                if (prevData && prevData.value !== 0) {
+                    delta = ((d.value - prevData.value) / Math.abs(prevData.value)) * 100;
+                    deltaClass = delta >= 0 ? 'positive' : 'negative';
+                }
+
+                tableHtml += `
+                    <tr class="${d.isCurrent ? 'current' : ''}">
+                        <td class="week-col">${d.label}</td>
+                        <td class="value-col">${formatValue(d.value)}</td>
+                        <td class="delta-col ${deltaClass}">${delta !== null ? (delta >= 0 ? '+' : '') + delta.toFixed(1) + '%' : '-'}</td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += '</tbody></table>';
+
+            return currentHtml + chartHtml + tableHtml;
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeTrendModal();
+            }
+        });
+    </script>
+</body>
+</html>
