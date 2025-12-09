@@ -961,12 +961,22 @@
         // Init user info
         function initUserInfo() {
             const user = sessionStorage.getItem('fradiavolo_user') || 'Admin';
-            const role = sessionStorage.getItem('fradiavolo_role') || 'Admin';
+            const role = sessionStorage.getItem('fradiavolo_role') || 'admin';
+            const allowedPages = JSON.parse(sessionStorage.getItem('fradiavolo_pages') || '[]');
+
             const initials = user.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
             document.getElementById('avatarInitials').textContent = initials || 'AP';
             document.getElementById('dropdownUserName').textContent = user;
-            const roleLabels = { 'Admin': 'Amministratore', 'Manager': 'Manager', 'Punto vendita': 'Punto Vendita' };
+            const roleLabels = { 'admin': 'Amministratore', 'office': 'Office', 'manager': 'Manager' };
             document.getElementById('dropdownUserRole').textContent = roleLabels[role] || role;
+
+            // Filter sidebar items based on allowed pages
+            document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+                const page = item.getAttribute('data-page');
+                if (!allowedPages.includes(page)) {
+                    item.style.display = 'none';
+                }
+            });
         }
         document.addEventListener('DOMContentLoaded', initUserInfo);
     </script>

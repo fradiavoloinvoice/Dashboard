@@ -139,19 +139,30 @@
     </div>
 
     <script>
-        // Inizializza database utenti in localStorage se non esiste
+        // Inizializza database utenti in localStorage
         function initUsersDB() {
-            if (!localStorage.getItem('fradiavolo_users')) {
+            const USERS_VERSION = 2; // Incrementare per forzare reset utenti
+            const currentVersion = localStorage.getItem('fradiavolo_users_version');
+
+            if (!localStorage.getItem('fradiavolo_users') || currentVersion != USERS_VERSION) {
                 const defaultUsers = [
                     {
                         id: 1,
                         username: 'Admin',
                         password: 'FraDiav0l0!2025#Secure',
-                        role: 'Admin',
-                        pages: ['dash', 'stores', 'recensioni', 'glovo', 'deliveroo', 'justeat', 'combined', 'delivery-report', 'users']
+                        role: 'admin',
+                        pages: ['dash', 'stores', 'analisi-week', 'recensioni', 'glovo', 'deliveroo', 'justeat', 'combined', 'delivery-report', 'users']
+                    },
+                    {
+                        id: 2,
+                        username: 'Office',
+                        password: 'Office@Frad2025!',
+                        role: 'office',
+                        pages: ['dash', 'stores', 'analisi-week', 'recensioni']
                     }
                 ];
                 localStorage.setItem('fradiavolo_users', JSON.stringify(defaultUsers));
+                localStorage.setItem('fradiavolo_users_version', USERS_VERSION);
             }
         }
         initUsersDB();

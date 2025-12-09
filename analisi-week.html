@@ -6,6 +6,7 @@
     <title>Fradiavolo - Analisi Week</title>
     <script>
     if(sessionStorage.getItem('fradiavolo_logged')!=='true'){window.location.href='login.html';}
+    else{const pages=JSON.parse(sessionStorage.getItem('fradiavolo_pages')||'[]');if(!pages.includes('analisi-week')){alert('Non hai accesso a questa pagina');window.location.href='login.html';}}
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -497,10 +498,27 @@
         });
 
         function updateUserInfo() {
-            const username = sessionStorage.getItem('fradiavolo_username') || 'Admin';
+            const username = sessionStorage.getItem('fradiavolo_user') || 'Admin';
+            const role = sessionStorage.getItem('fradiavolo_role') || 'admin';
+            const allowedPages = JSON.parse(sessionStorage.getItem('fradiavolo_pages') || '[]');
+
             const initials = username.substring(0, 2).toUpperCase();
             document.getElementById('avatarInitials').textContent = initials;
             document.getElementById('dropdownUserName').textContent = username;
+
+            // Filter sidebar items based on allowed pages
+            document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+                const page = item.getAttribute('data-page');
+                if (!allowedPages.includes(page)) {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Hide PDF button for non-admin users
+            const pdfBtn = document.getElementById('downloadPdfBtn');
+            if (pdfBtn && role !== 'admin') {
+                pdfBtn.style.display = 'none';
+            }
         }
 
         async function loadWeeks() {
