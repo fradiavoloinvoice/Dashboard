@@ -359,7 +359,9 @@ export async function getAllData(req, res) {
       if (w) weeksSet.add(w);
     });
     
-    const weeks = [...weeksSet].sort().reverse();
+    // Filtra settimane non valide (es. "2025-WCaricamento in corso...")
+    const validWeekPattern = /^\d{4}-W\d{2}$/;
+    const weeks = [...weeksSet].filter(w => validWeekPattern.test(w)).sort().reverse();
     const cities = [...new Set(Object.values(STORE_MAPPING).map(s => s.city))].sort();
     const stores = Object.entries(STORE_MAPPING).map(([id, info]) => ({
       id, name: info.name, city: info.city
