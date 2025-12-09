@@ -8,6 +8,8 @@
     if(sessionStorage.getItem('fradiavolo_logged')!=='true'){window.location.href='login.html';}
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #F8F9FA; min-height: 100vh; display: flex; }
@@ -383,6 +385,7 @@
             </div>
             <div class="header-actions">
                 <button class="btn btn-primary" onclick="loadAllData()">🔄 Aggiorna</button>
+                <button class="btn btn-primary" onclick="downloadPDF()" id="downloadPdfBtn" style="background: #059669;">📄 Scarica PDF</button>
                 <div class="avatar-container">
                     <div class="avatar" onclick="toggleAvatarDropdown()" id="avatarBtn">
                         <span id="avatarInitials">AP</span>
@@ -1917,6 +1920,456 @@
                 closeTrendModal();
             }
         });
+
+        // ===== PDF GENERATION =====
+        async function downloadPDF() {
+            const btn = document.getElementById('downloadPdfBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Generando PDF...';
+            btn.disabled = true;
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                const margin = 15;
+                const contentWidth = pageWidth - (margin * 2);
+
+                // Helper: safe string conversion
+                function safeStr(val) {
+                    if (val === null || val === undefined) return '-';
+                    return String(val);
+                }
+
+                // Helper function to add page header
+                function addPageHeader(title, subtitle) {
+                    pdf.setFillColor(234, 88, 12);
+                    pdf.rect(0, 0, pageWidth, 25, 'F');
+                    pdf.setTextColor(255, 255, 255);
+                    pdf.setFontSize(16);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text(safeStr(title), margin, 15);
+                    if (subtitle) {
+                        pdf.setFontSize(10);
+                        pdf.setFont('helvetica', 'normal');
+                        pdf.text(safeStr(subtitle), margin, 21);
+                    }
+                    pdf.setTextColor(0, 0, 0);
+                    return 35;
+                }
+
+                // Helper function to add section title
+                function addSectionTitle(y, title) {
+                    pdf.setFillColor(234, 88, 12);
+                    pdf.rect(margin, y - 2, contentWidth, 8, 'F');
+                    pdf.setFontSize(11);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setTextColor(255, 255, 255);
+                    pdf.text(safeStr(title), margin + 3, y + 4);
+                    pdf.setTextColor(0, 0, 0);
+                    return y + 12;
+                }
+
+                // Helper function to add KPI row
+                function addKpiRow(y, items) {
+                    const itemWidth = (contentWidth - (items.length - 1) * 5) / items.length;
+                    items.forEach((item, idx) => {
+                        const x = margin + idx * (itemWidth + 5);
+                        pdf.setFillColor(249, 250, 251);
+                        pdf.roundedRect(x, y, itemWidth, 22, 2, 2, 'F');
+
+                        pdf.setFontSize(7);
+                        pdf.setFont('helvetica', 'normal');
+                        pdf.setTextColor(107, 114, 128);
+                        pdf.text(safeStr(item.label).toUpperCase(), x + 3, y + 5);
+
+                        pdf.setFontSize(12);
+                        pdf.setFont('helvetica', 'bold');
+                        pdf.setTextColor(31, 41, 55);
+                        pdf.text(safeStr(item.value), x + 3, y + 13);
+
+                        if (item.delta) {
+                            pdf.setFontSize(7);
+                            if (item.positive) {
+                                pdf.setTextColor(5, 150, 105);
+                            } else {
+                                pdf.setTextColor(220, 38, 38);
+                            }
+                            pdf.text(safeStr(item.delta), x + 3, y + 19);
+                        }
+                    });
+                    return y + 26;
+                }
+
+                // Helper to wrap text
+                function addWrappedText(text, x, y, maxWidth, lineHeight) {
+                    const words = safeStr(text).split(' ');
+                    let line = '';
+                    let currentY = y;
+
+                    words.forEach(word => {
+                        const testLine = line + word + ' ';
+                        const testWidth = pdf.getTextWidth(testLine);
+                        if (testWidth > maxWidth && line !== '') {
+                            pdf.text(line.trim(), x, currentY);
+                            line = word + ' ';
+                            currentY += lineHeight;
+                        } else {
+                            line = testLine;
+                        }
+                    });
+                    if (line.trim()) {
+                        pdf.text(line.trim(), x, currentY);
+                        currentY += lineHeight;
+                    }
+                    return currentY;
+                }
+
+                // Get data - IMPORTANT: use storesRanking, not stores!
+                const kpis = fatturatoData?.kpis || {};
+                const stores = fatturatoData?.storesRanking || [];
+                const storesMichele = stores.filter(s => getStoreArea(s.name) === 'michele');
+                const storesNicolas = stores.filter(s => getStoreArea(s.name) === 'nicolas');
+                const prevKpis = previousWeekData?.kpis || {};
+
+                // Calculate additional metrics for executive summary
+                const deltaBudget = parseFloat(kpis.deltaBudgetPct) || 0;
+                const deltaYoY = parseFloat(kpis.deltaAnnoPct) || 0;
+                const fatturato = parseFloat(kpis.fatturatoNetto) || 0;
+                const budget = parseFloat(kpis.budget) || 0;
+                const coperti = kpis.coperti || 0;
+                const scontrino = parseFloat(kpis.scontrinoMedio) || 0;
+
+                // Find best and worst stores
+                const storesSorted = [...stores].sort((a, b) => parseFloat(b.deltaBudgetPct) - parseFloat(a.deltaBudgetPct));
+                const bestStores = storesSorted.filter(s => parseFloat(s.deltaBudgetPct) >= 0).slice(0, 3);
+                const worstStores = storesSorted.filter(s => parseFloat(s.deltaBudgetPct) < 0).sort((a, b) => parseFloat(a.deltaBudgetPct) - parseFloat(b.deltaBudgetPct)).slice(0, 3);
+
+                // Get delivery data for summary
+                const glovoWeekData = getGlovoChainData(selectedWeek);
+                const deliverooWeekData = getDeliverooChainData(selectedWeek);
+                const justeatWeekData = getJustEatChainData(selectedWeek);
+                const totalDeliveryGMV = (glovoWeekData?.gmv || 0) + (deliverooWeekData?.gmv || 0) + (justeatWeekData?.gmv || 0);
+                const totalDeliveryOrders = (glovoWeekData?.orders || 0) + (deliverooWeekData?.orders || 0) + (justeatWeekData?.orders || 0);
+
+                // Week-over-week changes
+                const copertiChange = prevKpis.coperti ? ((coperti - prevKpis.coperti) / prevKpis.coperti * 100).toFixed(1) : null;
+                const scontrinoChange = prevKpis.scontrinoMedio ? ((scontrino - parseFloat(prevKpis.scontrinoMedio)) / parseFloat(prevKpis.scontrinoMedio) * 100).toFixed(1) : null;
+
+                // ========== PAGE 1: CHAIN ANALYSIS ==========
+                let y = addPageHeader('FRADIAVOLO - ANALISI WEEK', 'Settimana ' + selectedWeek + ' - Report Catena');
+
+                // Executive Summary Box - Extended version like on page
+                const summaryHeight = 75;
+                pdf.setFillColor(255, 247, 237);
+                pdf.roundedRect(margin, y, contentWidth, summaryHeight, 3, 3, 'F');
+                pdf.setDrawColor(234, 88, 12);
+                pdf.setLineWidth(0.8);
+                pdf.line(margin, y, margin, y + summaryHeight);
+
+                pdf.setFontSize(11);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(234, 88, 12);
+                pdf.text('EXECUTIVE SUMMARY - Settimana ' + selectedWeek, margin + 5, y + 8);
+
+                pdf.setFontSize(8);
+                pdf.setFont('helvetica', 'normal');
+                pdf.setTextColor(55, 65, 81);
+
+                let summaryY = y + 16;
+                const lineHeight = 5;
+
+                // Line 1: Overall performance
+                const budgetStatus = deltaBudget >= 0 ? 'SOPRA BUDGET' : 'SOTTO BUDGET';
+                pdf.text('Fatturato netto: ' + formatCurrency(fatturato) + ' | ' + budgetStatus + ' (' + (deltaBudget >= 0 ? '+' : '') + deltaBudget.toFixed(1) + '%) | vs Anno Prec: ' + (deltaYoY >= 0 ? '+' : '') + deltaYoY.toFixed(1) + '%', margin + 5, summaryY);
+                summaryY += lineHeight;
+
+                // Line 2: Gap or success
+                if (deltaBudget < 0) {
+                    const gap = budget - fatturato;
+                    pdf.text('Gap rispetto al budget: ' + formatCurrency(gap), margin + 5, summaryY);
+                } else {
+                    pdf.text('Obiettivo budget raggiunto e superato di ' + formatCurrency(fatturato - budget), margin + 5, summaryY);
+                }
+                summaryY += lineHeight;
+
+                // Line 3: Coperti and Scontrino
+                let line3 = 'Coperti: ' + formatNumber(coperti);
+                if (copertiChange) line3 += ' (' + (parseFloat(copertiChange) >= 0 ? '+' : '') + copertiChange + '% vs sett. prec.)';
+                line3 += ' | Scontrino: ' + formatCurrency2(scontrino);
+                if (scontrinoChange) line3 += ' (' + (parseFloat(scontrinoChange) >= 0 ? '+' : '') + scontrinoChange + '%)';
+                pdf.text(line3, margin + 5, summaryY);
+                summaryY += lineHeight;
+
+                // Line 4: Best performers
+                if (bestStores.length > 0) {
+                    const bestList = bestStores.map(s => s.name.replace('FDV ', '') + ' (+' + parseFloat(s.deltaBudgetPct).toFixed(1) + '%)').join(', ');
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Top performer: ', margin + 5, summaryY);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.text(bestList, margin + 5 + pdf.getTextWidth('Top performer: '), summaryY);
+                    summaryY += lineHeight;
+                }
+
+                // Line 5: Stores to monitor
+                if (worstStores.length > 0) {
+                    const worstList = worstStores.map(s => s.name.replace('FDV ', '') + ' (' + parseFloat(s.deltaBudgetPct).toFixed(1) + '%)').join(', ');
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Da monitorare: ', margin + 5, summaryY);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.text(worstList, margin + 5 + pdf.getTextWidth('Da monitorare: '), summaryY);
+                    summaryY += lineHeight;
+                }
+
+                // Line 6: Delivery
+                if (totalDeliveryGMV > 0) {
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Delivery: ', margin + 5, summaryY);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.text('GMV ' + formatCurrency(totalDeliveryGMV) + ' | ' + formatNumber(totalDeliveryOrders) + ' ordini', margin + 5 + pdf.getTextWidth('Delivery: '), summaryY);
+                }
+
+                y += summaryHeight + 8;
+
+                // Fatturato Section
+                y = addSectionTitle(y, 'FATTURATO');
+                y = addKpiRow(y, [
+                    { label: 'Fatturato Netto', value: formatCurrency(kpis.fatturatoNetto), delta: (deltaBudget >= 0 ? '+' : '') + deltaBudget.toFixed(1) + '% vs Budget', positive: deltaBudget >= 0 },
+                    { label: 'Budget', value: formatCurrency(kpis.budget), delta: 'Target settimanale', positive: true },
+                    { label: 'vs Anno Prec.', value: formatCurrency(kpis.nettoAP), delta: (deltaYoY >= 0 ? '+' : '') + deltaYoY.toFixed(1) + '% YoY', positive: deltaYoY >= 0 }
+                ]);
+
+                // Performance Section
+                y = addSectionTitle(y, 'PERFORMANCE');
+                y = addKpiRow(y, [
+                    { label: 'Scontrino Medio', value: formatCurrency2(parseFloat(kpis.scontrinoMedio) || 0) },
+                    { label: 'Coperti Totali', value: formatNumber(kpis.coperti) }
+                ]);
+
+                // Mix Canali Section
+                y = addSectionTitle(y, 'MIX CANALI');
+                const mix = kpis.mixCanali || {};
+                const channels = [
+                    { name: 'Store', value: mix.store || 0, color: [59, 130, 246] },
+                    { name: 'Asporto', value: mix.asporto || 0, color: [139, 92, 246] },
+                    { name: 'Glovo', value: mix.glovo || 0, color: [255, 194, 68] },
+                    { name: 'Deliveroo', value: mix.deliveroo || 0, color: [0, 204, 188] },
+                    { name: 'Just Eat', value: mix.justEat || 0, color: [255, 128, 0] }
+                ];
+
+                let barX = margin;
+                channels.forEach(ch => {
+                    const barWidth = (ch.value / 100) * contentWidth;
+                    if (barWidth > 0) {
+                        pdf.setFillColor(ch.color[0], ch.color[1], ch.color[2]);
+                        pdf.rect(barX, y, barWidth, 10, 'F');
+                        barX += barWidth;
+                    }
+                });
+                y += 14;
+
+                pdf.setFontSize(7);
+                let legendX = margin;
+                channels.forEach(ch => {
+                    pdf.setFillColor(ch.color[0], ch.color[1], ch.color[2]);
+                    pdf.circle(legendX + 2, y, 2, 'F');
+                    pdf.setTextColor(0, 0, 0);
+                    const text = ch.name + ' ' + ch.value.toFixed(1) + '%';
+                    pdf.text(text, legendX + 6, y + 1);
+                    legendX += pdf.getTextWidth(text) + 12;
+                });
+                y += 10;
+
+                // Delivery Section (reusing delivery data from executive summary)
+                y = addSectionTitle(y, 'DELIVERY PERFORMANCE');
+
+                y = addKpiRow(y, [
+                    { label: 'Glovo GMV', value: formatCurrency(glovoWeekData?.gmv || 0), delta: (glovoWeekData?.orders || 0) + ' ordini', positive: true },
+                    { label: 'Deliveroo GMV', value: formatCurrency(deliverooWeekData?.gmv || 0), delta: (deliverooWeekData?.orders || 0) + ' ordini', positive: true },
+                    { label: 'Just Eat GMV', value: formatCurrency(justeatWeekData?.gmv || 0), delta: (justeatWeekData?.orders || 0) + ' ordini', positive: true }
+                ]);
+
+                // Recensioni Section
+                const chainRecensioni = getChainRecensioni(selectedWeek);
+                const chainSondaggio = getChainSondaggio(selectedWeek);
+                y = addSectionTitle(y, 'RECENSIONI E NPS');
+                y = addKpiRow(y, [
+                    { label: 'Google', value: chainRecensioni.google?.avgRating?.toFixed(2) || '-', delta: (chainRecensioni.google?.count || 0) + ' recensioni', positive: true },
+                    { label: 'TripAdvisor', value: chainRecensioni.tripadvisor?.avgRating?.toFixed(2) || '-', delta: (chainRecensioni.tripadvisor?.count || 0) + ' recensioni', positive: true },
+                    { label: 'TheFork', value: chainRecensioni.thefork?.avgRating?.toFixed(2) || '-', delta: (chainRecensioni.thefork?.count || 0) + ' recensioni', positive: true },
+                    { label: 'NPS', value: chainSondaggio.nps !== null ? String(chainSondaggio.nps) : '-', delta: (chainSondaggio.responses || 0) + ' risposte', positive: (chainSondaggio.nps || 0) >= 0 }
+                ]);
+
+                // ========== AREA MICHELE PAGES ==========
+                pdf.addPage();
+                y = addPageHeader('AREA MICHELE', 'Settimana ' + selectedWeek + ' - ' + storesMichele.length + ' Punti Vendita');
+
+                for (let i = 0; i < storesMichele.length; i++) {
+                    const store = storesMichele[i];
+                    if (y > pageHeight - 55) {
+                        pdf.addPage();
+                        y = addPageHeader('AREA MICHELE (continua)', 'Settimana ' + selectedWeek);
+                    }
+
+                    // Store card
+                    pdf.setFillColor(255, 247, 237);
+                    pdf.roundedRect(margin, y, contentWidth, 40, 2, 2, 'F');
+                    pdf.setDrawColor(234, 88, 12);
+                    pdf.setLineWidth(0.5);
+                    pdf.line(margin, y, margin, y + 40);
+
+                    pdf.setFontSize(10);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setTextColor(31, 41, 55);
+                    pdf.text(safeStr(store.name), margin + 4, y + 7);
+
+                    const colWidth = (contentWidth - 16) / 4;
+                    const dataY = y + 14;
+                    const storeDeltaBudget = parseFloat(store.deltaBudgetPct) || 0;
+                    const storeDeltaYoY = parseFloat(store.deltaAnnoPct) || 0;
+                    const scontrino = store.coperti > 0 ? (store.netto * (store.pctStore || 0.5) / store.coperti) : 0;
+
+                    // Column 1: Fatturato
+                    pdf.setFontSize(7);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.setTextColor(107, 114, 128);
+                    pdf.text('FATTURATO', margin + 4, dataY);
+                    pdf.setFontSize(9);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setTextColor(31, 41, 55);
+                    pdf.text(formatCurrency(store.netto), margin + 4, dataY + 5);
+                    pdf.setFontSize(7);
+                    if (storeDeltaBudget >= 0) { pdf.setTextColor(5, 150, 105); } else { pdf.setTextColor(220, 38, 38); }
+                    pdf.text((storeDeltaBudget >= 0 ? '+' : '') + storeDeltaBudget.toFixed(1) + '% vs Budget', margin + 4, dataY + 10);
+
+                    // Column 2: Coperti
+                    pdf.setFontSize(7);
+                    pdf.setTextColor(107, 114, 128);
+                    pdf.text('COPERTI', margin + 4 + colWidth, dataY);
+                    pdf.setFontSize(9);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setTextColor(31, 41, 55);
+                    pdf.text(formatNumber(store.coperti), margin + 4 + colWidth, dataY + 5);
+
+                    // Column 3: Scontrino
+                    pdf.setFontSize(7);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.setTextColor(107, 114, 128);
+                    pdf.text('SCONTRINO', margin + 4 + colWidth * 2, dataY);
+                    pdf.setFontSize(9);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setTextColor(31, 41, 55);
+                    pdf.text(formatCurrency2(scontrino), margin + 4 + colWidth * 2, dataY + 5);
+
+                    // Column 4: vs Anno Prec
+                    pdf.setFontSize(7);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.setTextColor(107, 114, 128);
+                    pdf.text('VS ANNO PREC.', margin + 4 + colWidth * 3, dataY);
+                    pdf.setFontSize(9);
+                    pdf.setFont('helvetica', 'bold');
+                    if (storeDeltaYoY >= 0) { pdf.setTextColor(5, 150, 105); } else { pdf.setTextColor(220, 38, 38); }
+                    pdf.text((storeDeltaYoY >= 0 ? '+' : '') + storeDeltaYoY.toFixed(1) + '%', margin + 4 + colWidth * 3, dataY + 5);
+
+                    y += 45;
+                }
+
+                // ========== AREA NICOLAS PAGES ==========
+                pdf.addPage();
+                y = addPageHeader('AREA NICOLAS', 'Settimana ' + selectedWeek + ' - ' + storesNicolas.length + ' Punti Vendita');
+
+                for (let i = 0; i < storesNicolas.length; i++) {
+                    const store = storesNicolas[i];
+                    if (y > pageHeight - 55) {
+                        pdf.addPage();
+                        y = addPageHeader('AREA NICOLAS (continua)', 'Settimana ' + selectedWeek);
+                    }
+
+                    // Store card
+                    pdf.setFillColor(239, 246, 255);
+                    pdf.roundedRect(margin, y, contentWidth, 40, 2, 2, 'F');
+                    pdf.setDrawColor(59, 130, 246);
+                    pdf.setLineWidth(0.5);
+                    pdf.line(margin, y, margin, y + 40);
+
+                    pdf.setFontSize(10);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setTextColor(31, 41, 55);
+                    pdf.text(safeStr(store.name), margin + 4, y + 7);
+
+                    const colWidth = (contentWidth - 16) / 4;
+                    const dataY = y + 14;
+                    const storeDeltaBudget = parseFloat(store.deltaBudgetPct) || 0;
+                    const storeDeltaYoY = parseFloat(store.deltaAnnoPct) || 0;
+                    const scontrino = store.coperti > 0 ? (store.netto * (store.pctStore || 0.5) / store.coperti) : 0;
+
+                    // Column 1: Fatturato
+                    pdf.setFontSize(7);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.setTextColor(107, 114, 128);
+                    pdf.text('FATTURATO', margin + 4, dataY);
+                    pdf.setFontSize(9);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setTextColor(31, 41, 55);
+                    pdf.text(formatCurrency(store.netto), margin + 4, dataY + 5);
+                    pdf.setFontSize(7);
+                    if (storeDeltaBudget >= 0) { pdf.setTextColor(5, 150, 105); } else { pdf.setTextColor(220, 38, 38); }
+                    pdf.text((storeDeltaBudget >= 0 ? '+' : '') + storeDeltaBudget.toFixed(1) + '% vs Budget', margin + 4, dataY + 10);
+
+                    // Column 2: Coperti
+                    pdf.setFontSize(7);
+                    pdf.setTextColor(107, 114, 128);
+                    pdf.text('COPERTI', margin + 4 + colWidth, dataY);
+                    pdf.setFontSize(9);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setTextColor(31, 41, 55);
+                    pdf.text(formatNumber(store.coperti), margin + 4 + colWidth, dataY + 5);
+
+                    // Column 3: Scontrino
+                    pdf.setFontSize(7);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.setTextColor(107, 114, 128);
+                    pdf.text('SCONTRINO', margin + 4 + colWidth * 2, dataY);
+                    pdf.setFontSize(9);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setTextColor(31, 41, 55);
+                    pdf.text(formatCurrency2(scontrino), margin + 4 + colWidth * 2, dataY + 5);
+
+                    // Column 4: vs Anno Prec
+                    pdf.setFontSize(7);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.setTextColor(107, 114, 128);
+                    pdf.text('VS ANNO PREC.', margin + 4 + colWidth * 3, dataY);
+                    pdf.setFontSize(9);
+                    pdf.setFont('helvetica', 'bold');
+                    if (storeDeltaYoY >= 0) { pdf.setTextColor(5, 150, 105); } else { pdf.setTextColor(220, 38, 38); }
+                    pdf.text((storeDeltaYoY >= 0 ? '+' : '') + storeDeltaYoY.toFixed(1) + '%', margin + 4 + colWidth * 3, dataY + 5);
+
+                    y += 45;
+                }
+
+                // Add footer to all pages
+                const totalPages = pdf.internal.getNumberOfPages();
+                for (let i = 1; i <= totalPages; i++) {
+                    pdf.setPage(i);
+                    pdf.setFontSize(8);
+                    pdf.setTextColor(156, 163, 175);
+                    pdf.text('Fradiavolo - Analisi Week ' + selectedWeek + ' - Pagina ' + i + ' di ' + totalPages, pageWidth / 2, pageHeight - 10, { align: 'center' });
+                    pdf.text(new Date().toLocaleDateString('it-IT'), pageWidth - margin, pageHeight - 10, { align: 'right' });
+                }
+
+                // Download
+                pdf.save('Fradiavolo_AnalisiWeek_' + selectedWeek + '.pdf');
+
+            } catch (error) {
+                console.error('Errore generazione PDF:', error);
+                alert('Errore durante la generazione del PDF: ' + error.message);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
     </script>
 </body>
 </html>
