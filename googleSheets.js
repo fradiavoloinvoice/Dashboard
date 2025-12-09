@@ -1,5 +1,24 @@
 import { google } from 'googleapis';
 
+// ✅ Helper per decodificare credenziali (supporta JSON o Base64)
+function getCredentials() {
+  const key = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+  if (!key) throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY non configurata');
+
+  try {
+    // Prova prima come JSON normale
+    return JSON.parse(key);
+  } catch (e) {
+    // Se fallisce, prova come Base64
+    try {
+      const decoded = Buffer.from(key, 'base64').toString('utf-8');
+      return JSON.parse(decoded);
+    } catch (e2) {
+      throw new Error('Credenziali Google non valide (né JSON né Base64)');
+    }
+  }
+}
+
 // ✅ Cache system (5 minuti TTL)
 const cacheGlovo = { data: null, timestamp: null, TTL: 5 * 60 * 1000 };
 const cacheDeliveroo = { data: null, timestamp: null, TTL: 5 * 60 * 1000 };
@@ -39,7 +58,7 @@ export async function getGlovoSheetsData() {
 
   try {
     const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY),
+      credentials: getCredentials(),
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
     });
 
@@ -87,7 +106,7 @@ export async function getDeliverooSheetsData() {
 
   try {
     const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY),
+      credentials: getCredentials(),
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
     });
 
@@ -132,7 +151,7 @@ export async function getJustEatSheetsData() {
 
   try {
     const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY),
+      credentials: getCredentials(),
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
     });
 
@@ -171,7 +190,7 @@ export async function getFatturatoSheetsData() {
 
   try {
     const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY),
+      credentials: getCredentials(),
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
     });
 
@@ -213,7 +232,7 @@ export async function getRecensioniSheetsData() {
 
   try {
     const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY),
+      credentials: getCredentials(),
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
     });
 
@@ -256,7 +275,7 @@ export async function getSondaggioSheetsData() {
 
   try {
     const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY),
+      credentials: getCredentials(),
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
     });
 
