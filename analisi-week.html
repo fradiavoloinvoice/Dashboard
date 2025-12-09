@@ -270,6 +270,46 @@
             color: #9CA3AF;
         }
 
+        /* Store Search */
+        .store-search-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 16px;
+            padding-left: 16px;
+            border-left: 1px solid #E5E7EB;
+        }
+        .store-search-input {
+            padding: 8px 12px;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 13px;
+            width: 200px;
+            transition: all 0.2s;
+        }
+        .store-search-input:focus {
+            outline: none;
+            border-color: #EA580C;
+            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+        }
+        .store-search-input::placeholder {
+            color: #9CA3AF;
+        }
+        .search-clear-btn {
+            padding: 6px 10px;
+            border: none;
+            background: #F3F4F6;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #6B7280;
+            transition: all 0.2s;
+        }
+        .search-clear-btn:hover {
+            background: #E5E7EB;
+            color: #374151;
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 1024px) {
             .sidebar { width: 220px; }
@@ -458,6 +498,7 @@
         let previousWeekData = null;
         let availableWeeks = [];
         let selectedArea = 'all'; // Filter: 'all', 'michele', 'nicolas'
+        let storeSearchQuery = ''; // Search filter for store name
 
         // ===== Area Mapping =====
         const AREA_MAPPING = {
@@ -483,11 +524,25 @@
         }
 
         function filterStoresByArea(stores) {
-            if (selectedArea === 'all') return stores;
-            return stores.filter(store => {
-                const area = getStoreArea(store.name);
-                return area === selectedArea;
-            });
+            let filtered = stores;
+
+            // Filter by area
+            if (selectedArea !== 'all') {
+                filtered = filtered.filter(store => {
+                    const area = getStoreArea(store.name);
+                    return area === selectedArea;
+                });
+            }
+
+            // Filter by search query
+            if (storeSearchQuery.trim()) {
+                const query = storeSearchQuery.toLowerCase().trim();
+                filtered = filtered.filter(store =>
+                    store.name.toLowerCase().includes(query)
+                );
+            }
+
+            return filtered;
         }
 
         // ===== Initialize =====
@@ -655,12 +710,42 @@
                         </button>
                     ` : ''}
                 </div>
+                <div class="store-search-container">
+                    <span>🔍</span>
+                    <input
+                        type="text"
+                        class="store-search-input"
+                        id="storeSearchInput"
+                        placeholder="Cerca punto vendita..."
+                        value="${storeSearchQuery}"
+                        oninput="handleStoreSearch(this.value)"
+                    />
+                    ${storeSearchQuery ? `<button class="search-clear-btn" onclick="clearStoreSearch()">✕ Reset</button>` : ''}
+                </div>
                 <div class="filter-info">
-                    ${selectedArea !== 'all' ? `Visualizzando ${filterStoresByArea(stores).length} punti vendita` : ''}
+                    ${(selectedArea !== 'all' || storeSearchQuery) ? `Visualizzando ${filterStoresByArea(stores).length} punti vendita` : ''}
                 </div>
             `;
 
             return div;
+        }
+
+        function handleStoreSearch(value) {
+            storeSearchQuery = value;
+            renderAnalysis();
+            // Mantieni il focus sull'input dopo il re-render
+            setTimeout(() => {
+                const input = document.getElementById('storeSearchInput');
+                if (input) {
+                    input.focus();
+                    input.setSelectionRange(input.value.length, input.value.length);
+                }
+            }, 0);
+        }
+
+        function clearStoreSearch() {
+            storeSearchQuery = '';
+            renderAnalysis();
         }
 
         function setAreaFilter(area) {
